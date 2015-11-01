@@ -1,0 +1,7 @@
+package protofile.bulletin;
+
+message bulletinResponse{
+    required string beginTime = 1;
+    required string endTime = 2;
+    required string text = 3;
+}

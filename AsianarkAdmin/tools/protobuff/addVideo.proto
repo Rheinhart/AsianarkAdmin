@@ -1,0 +1,12 @@
+package protofile.addVideo;
+
+message addVideoRequest{
+    required string videoId = 1;
+    required string gameType=2;
+    required int32 betTime=3;
+    required string url=4;
+}
+
+message addVideoResponse{
+    required int32 code=1;
+}

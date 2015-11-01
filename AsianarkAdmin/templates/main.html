@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>游戏管理后台</title>
+
+<link rel="stylesheet" type="text/css" href="static/style.css">
+<script type="text/javascript" src="jquery-2.0.3.js"></script>
+<script type="text/javascript">
+var xmlhttp;
+///
+function submitChange()//提交修改命令
+{
+	 var username = document.getElementById("id_username");//要修改的账号
+    var select_act = document.getElementById("select");//要执行的操作
+    if (select_act.value==7 || select_act.value==8)
+    {
+        var change_templateId = document.getElementById("change_templateId");
+        var change_number = document.getElementById("change_number");
+        url = "opearplayer?"+getSelcect()+"&username="+username.value+"&select_act="+select_act.value+"&change_templateId="+change_templateId.value+"&change_number="+change_number.value+"&";
+    }
+    else
+    {
+        var change_val = document.getElementById("change_val");//变更值
+        url = "opearplayer?"+getSelcect()+"&username="+username.value+"&select_act="+select_act.value+"&change_val="+change_val.value+"&";
+    }
+    sendRequest(url);
+}
+
+function showBox()//根据选择的操作显示下面的输入框
+{
+    var selectId = document.getElementById("select");
+    var addtemplateId = document.getElementById("addtemplateId");
+    var addval = document.getElementById("addval");
+    addtemplateId.style.display="none"; 
+    addval.style.display="none"; 
+    if (selectId.value==7 || selectId.value==8)
+    {
+        addtemplateId.style.display="block"; 
+    }
+    else
+    {
+        addval.style.display="block"; 
+    }
+}
+///
+function createxmlhttprequest()
+{
+	if (window.XMLHttpRequest)
+	  { 
+	  xmlhttp=new XMLHttpRequest();
+	  }
+	else if (window.ActiveXObject)
+	  { 
+	  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	  }
+	return xmlhttp;
+}
+function sendRequest(url)
+{
+	 if(xmlhttp==null){
+	     xmlhttp = createxmlhttprequest();
+	 }
+	 xmlhttp.onreadystatechange=sendResponse;
+	 xmlhttp.open("GET",url,true);
+	 xmlhttp.send(null);
+}
+function sendResponse()
+{
+   if (xmlhttp.readyState==4)
+  { 
+  if (xmlhttp.status==200)
+    { 
+		var dom=document.getElementById("xm_sidebar_right");
+		dom.innerHTML=xmlhttp.responseText;
+    }
+  else
+    {
+    alert("Problem retrieving data:" + xmlhttp.statusText);
+    }
+  }
+}
+
+function thisObj(url,thisObj,num)
+{
+		  var dom=document.getElementById("xm_sidebar_left");
+		 var _dom=dom.getElementsByTagName("li");
+	for(i=0; i <_dom.length; i++){
+		if(i==num){
+		 _dom[i].style.background='#99FFFF';
+		 }else{
+		 _dom[i].style.background='#6699FF';
+		 }
+		}
+    var dom=document.getElementById("weizhi");
+    var m_dom=document.getElementById("xm_sidebar_right");
+    dom.innerHTML = thisObj.innerHTML;
+    m_dom.innerHTML = "信息加载中...";
+	sendRequest(url);
+ }
+ 
+ function getSelcect(){
+    var o_dom=document.getElementById("operator_c");
+    var s_dom= document.getElementById("server_c");
+    return "operator="+o_dom.value+"&server="+s_dom.value+'&';
+}
+
+function fleshServerlist(){
+    var dom=document.getElementById("weizhi");
+    switch(dom.innerHTML)
+    {
+      case "服务器管理":
+          url = "serverlist?"+getSelcect();
+          break;
+      case "单服数据统计":
+          url = "dayrecord?"+getSelcect();
+          break;
+      case "扶持账号管理":
+          url = "opearplayer?"+getSelcect();
+          break;
+      default:
+          url = "serverlist?"+getSelcect();
+    }
+    sendRequest(url);
+}
+
+function nextpage(){
+    var dom=document.getElementById("weizhi");
+    var index_dom=document.getElementById("index");
+    var index = parseInt(index_dom.innerHTML)+1
+    index_dom.innerHTML = index.toString()
+    switch(dom.innerHTML)
+    {
+      case "服务器管理":
+          url = "serverlist?"+getSelcect()+"index="+index_dom.innerHTML;
+          break;
+      case "单服数据统计":
+          url = "dayrecord?"+getSelcect()+"index="+index_dom.innerHTML;
+          break;
+      default:
+       url = "serverlist?"+getSelcect()+"index="+index_dom.innerHTML;
+    }
+    sendRequest(url);
+}
+
+function lastpage(){
+    var dom=document.getElementById("weizhi");
+    var index_dom=document.getElementById("index");
+    var index = parseInt(index_dom.innerHTML)
+    if(index==1){
+        alert("当前第一页");
+        return;
+    }
+    index-=1
+    index_dom.innerHTML = index.toString()
+    switch(dom.innerHTML)
+    {
+      case "服务器管理":
+          url = "serverlist?"+getSelcect()+"index="+index_dom.innerHTML;
+          break;
+      case "单服数据统计":
+          url = "dayrecord?"+getSelcect()+"index="+index_dom.innerHTML;
+          break;
+      default:
+       url = "serverlist?"+getSelcect()+"index="+index_dom.innerHTML;
+    }
+    sendRequest(url);
+}
+
+</script>
+</head>
+<body style=" background:#407690; color:#FFFFFF;">
+
+<div class="xm_container">
+ <div class="xm_main">
+ <div class="xm_header">
+ 
+ <p align="right">{{username}},<a href="loginout">注销</a>&nbsp;&nbsp;</p>
+ <p align="right">{{nowdate|date:'Y年m月d日'}}&nbsp;&nbsp;</p>
+ <p>&nbsp;&nbsp;当前位置:<u id="weizhi"></u>
+ </p>
+ </div>
+ <div id="xm_sidebar_left">
+ 	<ul>
+    	<li onclick="thisObj('serverlist',this,0);">服务器管理</li>
+        <li onclick="thisObj('dayrecord',this,1);">单服数据统计</li>
+        <li onclick="thisObj('opearplayer',this,2);">扶持账号管理</li>
+    </ul>
+</div>
+<div id="xm_sidebar_right" align="center">
+	
+</div>
+</div>
+</div>
+</body>
+</html>

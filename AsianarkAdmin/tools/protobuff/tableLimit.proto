@@ -1,0 +1,13 @@
+package protofile.tableLimit;
+
+message tableLimitResponse{
+    required int32 number = 1;
+    repeated tableLimit tableLimit = 2;
+}
+
+message tableLimit{
+    required string limitid = 1;
+    required string playtype = 2;
+    required int32 minval = 3;
+    required int32 maxval = 4;
+}

@@ -1,0 +1,24 @@
+package protofile.video.getVideos;
+message getVideosRequest{
+    optional string query = 1;
+}
+
+message getVideosResponse{
+    required int32 videoCount=1;
+    repeated VideoInfo video=2;
+}
+
+message VideoInfo{
+    required string videoId=1;
+    required string gameType=2;
+    required string betTime=3;
+    required string url=4;
+    required int32 tableCount=5;
+    repeated TableInfo table=6;
+}
+
+message TableInfo{
+    required string tableId=1;
+    required int32 limitId=2;
+    required int32 seats=3;
+}

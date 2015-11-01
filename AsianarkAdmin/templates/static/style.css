@@ -1,0 +1,22 @@
+<!------游戏管理后台部分--------->
+
+ body{ width:100%; height:100%; margin:0; padding:0;}
+ #top{ width:1000px; margin:100px auto 0 auto;}
+.header{ width:300px; height:80px; margin:0 auto 30px auto; padding:0; background:#0099FF; border:1px #0099FF solid;}
+.header a{ width:100px; height:32px; line-height:32px; display:block; margin:0 auto; padding:20px 0 20px 0;}
+.container{ width:500px; height:140px; margin:0 auto; padding:0;}
+.sp{ width:60px; height:32px; line-height:32px;float:left; clear:both;}
+ 
+.sp_inp{ width:240px; float:left;}
+.sp_inp input{ width:200px; border:1px #0099FF solid;}
+
+<!------项目部分---------->
+.xm_container { width:1350px; height:500px; margin:0 auto; border:1px #000000 solid;}
+.xm_main{width:1300px; height:500px; margin:20px auto; padding:0;}
+.xm_header{ width:1300px; height:120px; margin:20px auto; padding:0; border:1px #000000 solid;}
+#xm_sidebar_left{ width:140px; height:420px; margin:0; border:1px #000000 solid; float:left;}
+#xm_sidebar_left ul{width:100px; margin:0 auto; padding:0;}
+#xm_sidebar_left ul li{ width:100px; list-style:none; height:40px; border:1px #000000 solid; line-height:40px; text-align:center; margin:10px auto;}
+#xm_sidebar_right{ width:1150px; height:420px; border:1px #000000 solid; float:right; margin:0; padding:0;}
+ 
+#xm_sidebar_right ul{width:1100px; height:360px; border:1px #000000 solid; float:left;margin:0;padding-top:20px;}

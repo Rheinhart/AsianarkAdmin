@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>游戏管理后台</title>
+
+<link rel="stylesheet" type="text/css" href="static/style.css">
+<script type="text/javascript">
+
+function thisObj(thisObj,num){
+	  var dom_div=document.getElementById("xm_sidebar_right");
+		 var dom_ul=dom_div.getElementsByTagName("ul");
+		  var dom=document.getElementById("xm_sidebar_left");
+		 var _dom=dom.getElementsByTagName("li");
+	    for(i=0; i <_dom.length; i++){ 
+		
+		 if(i==num){
+		 dom_ul[i].style.display = "block";
+		 _dom[i].style.background='#99FFFF';
+		 }else{
+		 dom_ul[i].style.display = "none";
+		 _dom[i].style.background='#6699FF';
+		 }
+	} 
+};
+
+function getItemIndex(){
+    var left=document.getElementById("xm_sidebar_left");
+	var left_dom=dom.getElementsByTagName("li");
+};
+
+</script>
+
+</head>
+
+<body style=" background:#6699FF; color:#FFFFFF;">
+<div class="xm_container">
+ <div class="xm_main">
+ <div class="xm_header">
+ <p align="right">{{usernaem}},<a href="loginout">注销</a>&nbsp;&nbsp;<p>
+ </div>
+ <div id="xm_sidebar_left">
+ 	<ul>
+    	<li onclick="thisObj(this,0);">服务器管理</li>
+        <li onclick="thisObj(this,1);">在线人数统计</li>
+        <li onclick="thisObj(this,2);">每日数据统计</li>
+		<li onclick="thisObj(this,3);">在线人数统计</li>
+        <li onclick="thisObj(this,4);">扶持账户操作</li>
+        <li onclick="thisObj(this,5);">单服数据统计</li>
+    </ul>
+ 
+ </div>
+ <div id="xm_sidebar_right">
+   <ul style=" display:block;">
+    	<li>项目1</li>
+     </ul>
+    <ul style="display:none;">
+    	<li>项目2</li>
+    </ul>
+    <ul style="display:none;">
+    	<li>项目3</li>
+    </ul>
+    <ul style="display:none;">
+    	<li>项目4</li>
+    </ul>
+    <ul style="display:none;">
+    	<li>项目5</li>
+    </ul>
+    <ul style="display:none;">
+    	<li>项目6</li>
+    </ul>
+    <ul style="display:none;">
+    	<li>项目7</li>
+    </ul>
+ 
+ </div>
+ 
+ </div>
+ 
+ 
+ 
+
+</div>
+
+</body>
+</html>

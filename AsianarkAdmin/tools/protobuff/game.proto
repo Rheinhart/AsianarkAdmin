@@ -1,0 +1,128 @@
+package protofile.game;
+
+message startGameResponse{
+    //開始下注 0x002001b
+    required int32 videoid = 1;
+    required int32 bettime = 2;
+}
+
+message betRequest{
+    //下注 0x0001001c
+    required string roundcode = 1;
+    required int32 playtype = 2;
+    required float amount = 3;
+}
+
+message betResponse{
+    //下注回包 0x0002001c
+    required int32 code = 1;
+}
+
+message tablePotResponse{
+    //实时彩池 0x0002001d
+    required int32 playtype = 1;
+    required int32 amount = 2;
+    required float num = 3;
+}
+
+message tablePotDetailsRequest{
+    //查询实时彩池明细 0x0001001e
+    required int32 tablecode = 1;
+    required int32 playtype = 2;
+    required string roundcode = 3;
+}
+
+message tablePotDetailsResponse{
+    //实时彩池明细 0x0002001e
+    required int32 playtype = 1;
+    required int32 num = 2;
+    repeated PotDetails details = 3;
+}
+
+message PotDetails{
+    required string loginname = 1;
+    required string nickname = 2;
+    required int32 tablecode = 3;
+    required int32 seat = 4;
+    required float amount = 5;
+}
+
+message gameResultResponse{
+    //游戏结果 0x00020020
+    required string roundcode = 1;
+    required int32 videoid = 2;
+    required int32 bankerpoint = 3;
+    required int32 playerpoint = 4;
+    required int32 pair = 5;
+    required int32 cardnum = 6;
+}
+
+message reckonResponse{
+    //结算 0x00020021
+    required string roundcode = 1;
+    required float totalwin = 2;
+    required float left = 3;
+    required int32 num = 4;
+    repeated ReckonDetails details = 5;
+}
+
+message ReckonDetails{
+    required int32 playtype = 1;
+    required float win = 2;
+}
+
+message otherPlayersBetResponse{
+    //同桌其他人下注 0x00020022
+    required int32 tablecode = 1;
+    required int32 seat = 2;
+    required int32 playtype = 3;
+    required float amount = 4;
+}
+
+message videoStatusRequest{
+    //请求视频状态 0x00010023
+}
+
+message videoStatusResponse{
+    //视频状态 0x00020023
+    required int32 videoid = 1;
+    required string gametype = 2;
+    required string roundcode = 3;
+    required int32 status = 4;
+    required string bankercards = 5;
+    required string playercards = 6;
+    required int32 bettime = 7;
+}
+
+message dealerResponse{
+    //荷官信息 0x00020024
+    required string dealername = 1;
+    required int32 videoid = 2;
+}
+
+message noBetResponse{
+    //三局不下提示 0x00020026
+    required int32 roundcount = 1;
+}
+
+message tableBetResponse{
+    //桌子已下注信息 0x00020027
+    required int32 num = 1;
+    repeated TableBetDetails details = 2;
+}
+
+message TableBetDetails{
+    required string loginname = 1;
+    required string nickname = 2;
+    required int32 tablecode = 3;
+    required int32 seat = 4;
+    required int32 playtype = 5;
+    required float amount = 6;
+}
+
+message otherPlayersReckonResponse{
+    //同桌其他人结算 0x00020028
+    required string loginname = 1;
+    required int32 num = 2;
+    repeated ReckonDetails details = 3;
+}
