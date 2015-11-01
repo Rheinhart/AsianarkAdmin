@@ -19,7 +19,7 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$','AsianarkAdmin.livecontroll.views.index',name='index'),
+    url(r'^$','AsianarkAdmin.baccarat_Controll.views.index',name='index'),
     url(r'^login','AsianarkAdmin.adminuser.views.login',name='login'),
     url(r'^main','AsianarkAdmin.adminuser.views.main',name='main'),
 ]
