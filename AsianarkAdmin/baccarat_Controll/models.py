@@ -103,11 +103,11 @@ class TTableLimitset(models.Model):
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
 
     def __unicode__(self):
-        return  u'桌台限红 %s' %self.tableid
+        return  u'%s,%s' %(self.limitid,self.playtype)
 
     class Meta:
         managed = False
-#        unique_together =(('limitid','playtype'),)
+        #unique_together =('limitid','playtype')
         db_table = 't_table_limitset'
         verbose_name =  u'桌台限红表'
         verbose_name_plural =  u'桌台限红表'
@@ -124,7 +124,7 @@ class TPersonalLimitset(models.Model):
     flag = models.IntegerField(db_column='Flag',verbose_name = u'是否禁用',choices=FLAG,default=0)
 
     def __unicode__(self):
-        return  u'个人限红 %s' %self.limitid
+        return  u'个人限红 %s,%s' %(self.limitid,self.playtype)
 
     class Meta:
 
