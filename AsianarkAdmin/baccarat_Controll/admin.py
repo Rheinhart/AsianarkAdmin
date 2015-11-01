@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
 from django.http import HttpResponseRedirect
 from django.db.models.signals import post_save
-from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TVideo,TTable
+from AsianarkAdmin.baccarat_Livel.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TVideo,TTable
 from AsianarkAdmin.settings import GAME_SERVER
 from memopr import memopr
 
