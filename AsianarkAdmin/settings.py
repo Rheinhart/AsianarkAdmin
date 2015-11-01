@@ -39,7 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'AsianarkAdmin.adminuser',
     'AsianarkAdmin.userinfo',
-    'AsianarkAdmin.Baccarat_Controll',
+    'AsianarkAdmin.Baccarat_Livel',
     'AsianarkAdmin.serverinfo',
 )
 
