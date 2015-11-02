@@ -159,7 +159,7 @@ class TOrders(models.Model):
     after_credit_cents = models.IntegerField(db_column='After_credit_Cents',default=0)
     create_time = models.DateTimeField(db_column='Create_time',verbose_name= u'创建时间',default=datetime.datetime.now)
     reckon_time = models.DateTimeField(db_column='Reckon_time',blank=True,null=True)
-    create_ip = models.GenericIPAddressField(db_column='ip',verbose_name= u'创建IP', max_length=16,default='127.0.0.1')
+    create_ip = models.GenericIPAddressField(verbose_name= u'创建IP', max_length=16,default='127.0.0.1')
 
     class Meta:
         managed = False

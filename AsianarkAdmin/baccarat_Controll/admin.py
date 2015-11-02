@@ -57,6 +57,7 @@ def pushBulletinToGameSer(sender,instance,**argvs):
             requests.get('http://%s:%s/bulletin?command=%s'%(url,port,command))
         except Exception, e:
             response = HttpResponseRedirect("/admin")
+            print 'Cannot send bulletin to the Game Server.'
             return response
 
 @admin.register(TTableLimitset)
