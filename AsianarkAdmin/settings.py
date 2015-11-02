@@ -57,9 +57,9 @@ MIDDLEWARE_CLASSES = (
     'AsianarkAdmin.admin_ip_whitelist.middleware.AdminAcceessIPWhiteListMiddleware'
 )
 
-ADMIN_ACCEES_WHITELIST_ENABLED = True  #set white list
+ADMIN_ACCEES_WHITELIST_ENABLED = True
 
-ADMIN_ACCEES_WHITELIST_MESSAGE = 'Fuck u'
+ADMIN_ACCEES_WHITELIST_MESSAGE = 'Your ip address is not allowed!'
 
 ROOT_URLCONF = 'AsianarkAdmin.urls'
 

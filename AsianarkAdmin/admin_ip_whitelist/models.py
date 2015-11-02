@@ -1,3 +1,4 @@
+#coding:utf8
 # dvska made
 # Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -11,19 +12,19 @@ WHITELIST_PREFIX = 'DJANGO_ADMIN_ACCESS_WHITELIST:'
 
 
 class DjangoAdminAccessIPWhitelist(models.Model):
-    whitelist_reason = models.CharField(max_length=255, help_text="Reason for the whitelist?")
+    whitelist_reason = models.CharField(max_length=255,verbose_name=u'白名单', help_text=u'设置白名单理由')
     ip = models.CharField(max_length=255, help_text='Enter an IP to whitelist')
 
     def __unicode__(self):
-        return "Whitelisted %s (%s) " % (self.ip, self.whitelist_reason)
+        return u'名单 %s (%s) ' %(self.ip, self.whitelist_reason)
 
     def __str__(self):
         return self.__unicode__()
 
     class Meta:
         permissions = (("can_whitelist_user", "Can Whitelist User"),)
-        verbose_name = "Django /admin access IP whitelist"
-        verbose_name_plural = "Django /admin access allowed IPs"
+        verbose_name = u'管理员登录IP白名单'
+        verbose_name_plural = u'管理员登录IP白名单'
         db_table = 'django_admin_access_ip_whitelist'
 
 
