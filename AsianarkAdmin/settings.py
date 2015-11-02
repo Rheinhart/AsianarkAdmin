@@ -38,7 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'AsianarkAdmin.admin_ip_whitelist',
-    'AsianarkAdmin.adminuser',
+    #'AsianarkAdmin.adminuser',
     'AsianarkAdmin.userinfo',
     'AsianarkAdmin.baccarat_Controll',
     'AsianarkAdmin.serverinfo',
@@ -93,10 +93,10 @@ DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'bjl',                      # Or path to database file if using sqlite3.
-        'USER': 'root',                      # Not used with sqlite3.
-        'PASSWORD': '123456',                  # Not used with sqlite3.
-        #'HOST': '183.91.54.138',                      # Set to empty string for localhost. Not used with sqlite3.
-        'HOST':'127.0.0.1',
+        'USER': 'web',                      # Not used with sqlite3.
+        'PASSWORD': 'web.ak',                  # Not used with sqlite3.
+        'HOST': '183.91.54.138',                      # Set to empty string for localhost. Not used with sqlite3.
+        #'HOST':'127.0.0.1',
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }

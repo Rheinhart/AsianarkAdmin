@@ -13,10 +13,10 @@ WHITELIST_PREFIX = 'DJANGO_ADMIN_ACCESS_WHITELIST:'
 
 class DjangoAdminAccessIPWhitelist(models.Model):
     whitelist_reason = models.CharField(max_length=255,verbose_name=u'白名单', help_text=u'设置白名单理由')
-    ip = models.CharField(max_length=255, help_text='Enter an IP to whitelist')
+    ip = models.CharField(max_length=255, help_text=u'输入白名单ip地址')
 
     def __unicode__(self):
-        return u'名单 %s (%s) ' %(self.ip, self.whitelist_reason)
+        return u'白名单 %s (%s) ' %(self.ip, self.whitelist_reason)
 
     def __str__(self):
         return self.__unicode__()
