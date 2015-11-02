@@ -38,7 +38,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'AsianarkAdmin.admin_ip_whitelist',
-    #'AsianarkAdmin.adminuser',
     'AsianarkAdmin.userinfo',
     'AsianarkAdmin.baccarat_Controll',
     'AsianarkAdmin.serverinfo',

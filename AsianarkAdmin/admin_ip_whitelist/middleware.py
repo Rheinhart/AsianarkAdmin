@@ -1,3 +1,4 @@
+#coding:utf8
 import logging
 
 import django
@@ -18,10 +19,10 @@ class AdminAcceessIPWhiteListMiddleware(object):
         """
         # If disabled or not enabled raise MiddleWareNotUsed so django
         # processes next middleware.
-        self.ENABLED = getattr(settings, 'ADMIN_ACCESS_WHITELIST_ENABLED', False)
+        self.ENABLED = getattr(settings, 'ADMIN_ACCESS_WHITELIST_ENABLED', True)
         self.DEBUG = getattr(settings, 'ADMIN_ACCESS_WHITELIST_DEBUG', False)
         self.USE_HTTP_X_FORWARDED_FOR = getattr(settings, 'ADMIN_ACCESS_WHITELIST_USE_HTTP_X_FORWARDED_FOR', False)
-        self.ADMIN_ACCESS_WHITELIST_MESSAGE = getattr(settings, 'ADMIN_ACCESS_WHITELIST_MESSAGE', 'You are banned.')
+        self.ADMIN_ACCESS_WHITELIST_MESSAGE = getattr(settings, 'ADMIN_ACCESS_WHITELIST_MESSAGE', 'Your ip address is not allowed!')
 
         if not self.ENABLED:
             raise MiddlewareNotUsed("django-banish is not enabled via settings.py")
