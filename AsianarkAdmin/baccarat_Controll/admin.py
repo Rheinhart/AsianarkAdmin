@@ -38,6 +38,8 @@ class TBulletinAdmin(admin.ModelAdmin):
 
     list_display = ('bulletinid','text','create_time','expired_time','flag')
     search_fields = ('bulletinid','flag')
+    search_fields = ('bulletinid','text','create_time','expired_time','flag')
+    list_filter = ('create_time','expired_time','flag')
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -64,6 +66,8 @@ def pushBulletinToGameSer(sender,instance,**argvs):
 class TTableLimitsetAdmin(admin.ModelAdmin):
 
     list_display = ('limitid','playtype','min_cents','max_cents','flag')
+    search_fields = ('limitid','playtype','min_cents','max_cents','flag')
+    list_filter = ('limitid','playtype','min_cents','max_cents','flag')
 
 @receiver(post_save, sender=TTableLimitset)
 def pushTableLimitToGameSer(instance,**argvs):
@@ -83,18 +87,25 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
 
     list_display = ('limitid','playtype','min_cents','max_cents','flag')
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
+    list_filter = ('limitid','playtype','min_cents','max_cents','flag')
 
 
 @admin.register(TRounds)
 class TRoundAdmin(admin.ModelAdmin):
 
     list_display = ('roundcode','gametype','videoid','dealer','cards','begintime','closetime','shoecode')
+    search_fields = ('roundcode','gametype','videoid','dealer','cards','begintime','closetime','shoecode')
+    list_filter = ('gametype','dealer','videoid','cards','begintime','closetime')
+    ordering = ('roundcode',)
+    #readonly_fields = ('roundcode',)
+
 
 @admin.register(TVideo)
 class TVideoAdmin(admin.ModelAdmin):
 
     list_display = ('videoid','gametype','bettime','url','flag')
     search_fields = ('videoid','gametype','bettime','url','flag')
+    list_filter = ('videoid','gametype','bettime','url','flag')
     ordering = ('videoid',)
     readonly_fields = ('videoid',)
 
@@ -136,7 +147,10 @@ class TVideoAdmin(admin.ModelAdmin):
 @admin.register(TTable)
 class TTableAdmin(admin.ModelAdmin):
 
-    ordering = ('tableid',)
+    list_display = ('tableid','videoid','gametype','seats','flag')
+    search_fields = ('tableid','videoid','gametype','seats','flag')
+    ordering = ('tableid','seats','videoid')
+    list_filter = ('videoid','gametype','flag')
     readonly_fields = ('tableid',)
 
     def get_actions(self, request):
