@@ -5,7 +5,6 @@ import django
 from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.core.exceptions import MiddlewareNotUsed
-from django.core.cache import cache
 from models import DjangoAdminAccessIPWhitelist, ADMIN_ACCESS_WHITELIST_PREFIX
 
 log = logging.getLogger(__name__)
@@ -23,6 +22,7 @@ class AdminAcceessIPWhiteListMiddleware(object):
         self.DEBUG = getattr(settings, 'ADMIN_ACCESS_WHITELIST_DEBUG', False)
         self.USE_HTTP_X_FORWARDED_FOR = getattr(settings, 'ADMIN_ACCESS_WHITELIST_USE_HTTP_X_FORWARDED_FOR', False)
         self.ADMIN_ACCESS_WHITELIST_MESSAGE = getattr(settings, 'ADMIN_ACCESS_WHITELIST_MESSAGE', 'Your ip address is not allowed!')
+        self.whitelists={}
 
         if not self.ENABLED:
             raise MiddlewareNotUsed("django-banish is not enabled via settings.py")
@@ -35,7 +35,7 @@ class AdminAcceessIPWhiteListMiddleware(object):
 
         for whitelist in DjangoAdminAccessIPWhitelist.objects.all():
             cache_key = self.WHITELIST_PREFIX + whitelist.ip
-            cache.set(cache_key, "1")
+            self.whitelists[cache_key] = 1
 
     def _get_ip(self, request):
         ip = request.META['REMOTE_ADDR']
@@ -68,7 +68,7 @@ class AdminAcceessIPWhiteListMiddleware(object):
 
     def is_whitelisted(self, ip):
         # If a whitelist key exists, return True to allow the request through
-        is_whitelisted = cache.get(self.WHITELIST_PREFIX + ip)
+        is_whitelisted = self.whitelists.get(self.WHITELIST_PREFIX + ip)
         if is_whitelisted:
             log.debug("/Admin access IP: " + self.WHITELIST_PREFIX + ip)
         return is_whitelisted
