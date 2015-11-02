@@ -21,3 +21,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$','AsianarkAdmin.baccarat_Controll.views.index',name='index'),
 ]
+
+admin.site.site_header = 'Asianark Administration System'
