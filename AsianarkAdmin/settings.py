@@ -150,3 +150,6 @@ GAME_SERVER = {
         'NAME':'bjl_Game_Ser'
     }
 }
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
