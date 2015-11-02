@@ -96,18 +96,18 @@ class TTableLimitset(models.Model):
 
     FLAG = ((0,u'启用'),(1,u'禁用'),)
 
-    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',primary_key=True,max_length=4)
+    id = models.AutoField(primary_key=True)
+    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',max_length=4)
     playtype = models.IntegerField(db_column='PlayType',verbose_name= u'玩法',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     min_cents = models.IntegerField(db_column='Min_Cents',verbose_name= u'最小下注额度',default=0)
     max_cents = models.IntegerField(db_column='Max_Cents',verbose_name= u'最大下注额度',default=100)
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
 
     def __unicode__(self):
-        return  u'%s,%s' %(self.limitid,self.playtype)
+        return  u'桌台限红 %s,%s' %(self.limitid,self.playtype)
 
     class Meta:
         managed = False
-        #unique_together =('limitid','playtype')
         db_table = 't_table_limitset'
         verbose_name =  u'桌台限红表'
         verbose_name_plural =  u'桌台限红表'
@@ -117,7 +117,8 @@ class TPersonalLimitset(models.Model):
 
     FLAG = ((0,u'启用'),(1,u'禁用'),)
 
-    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',primary_key=True,max_length=11)
+    id = models.AutoField(primary_key=True)
+    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',max_length=11)
     playtype = models.IntegerField(db_column='PlayType',verbose_name= u'玩法',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     min_cents = models.IntegerField(db_column='Min_Cents', verbose_name= u'最小下注额度',default=0)
     max_cents = models.IntegerField(db_column='Max_Cents', verbose_name= u'最大下注额度',default=100)
@@ -129,7 +130,6 @@ class TPersonalLimitset(models.Model):
     class Meta:
 
         managed = False
-        #unique_together =(('limitid','playtype'),)
         db_table = 't_personal_limitset'
         verbose_name =  u'个人限红表'
         verbose_name_plural =  u'个人限红表'
