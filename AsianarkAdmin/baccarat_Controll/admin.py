@@ -78,7 +78,6 @@ def pushTableLimitToGameSer(instance,**argvs):
     mytableLimit.playtype = instance.playtype
     mytableLimit.minval = instance.min_cents
     mytableLimit.maxval = instance.max_cents
-    mytableLimit.flag = instance.flag
 
     return requests.post('%s:%s'%(url,port),mytableLimit.SerializeToString())
 
