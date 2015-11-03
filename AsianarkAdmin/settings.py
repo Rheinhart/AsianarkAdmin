@@ -24,8 +24,9 @@ SECRET_KEY = 'c+p*di2k@3w89sg1c^)s^o*blc*w#o0407oq84ihs$l_m1oyrt'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  #set '*' when DEBUG = Falase
 
+ADMIN = (('Thomas', 'thomas_lee@outlook.de'), ) # send email to the address when DEBUG = False and error raise
 
 # Application definition
 
@@ -142,6 +143,8 @@ CACHES = {
     }
 }
 
+TIMEOUT = None   #cache time out!
+
 #Game Server
 GAME_SERVER = {
     'dafault':{
@@ -153,3 +156,4 @@ GAME_SERVER = {
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
