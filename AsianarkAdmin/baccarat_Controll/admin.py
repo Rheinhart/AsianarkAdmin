@@ -37,9 +37,9 @@ def pushLoginMessageToGameSer(**kwargs):
 class TBulletinAdmin(admin.ModelAdmin):
 
     list_display = ('bulletinid','text','create_time','expired_time','flag')
-    search_fields = ('bulletinid','flag')
-    search_fields = ('bulletinid','text','create_time','expired_time','flag')
+    search_fields = ('bulletinid','text','flag')
     list_filter = ('create_time','expired_time','flag')
+    ordering = ('-create_time','bulletinid')
 
     def save_model(self, request, obj, form, change):
         obj.save()
