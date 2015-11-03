@@ -79,7 +79,13 @@ def pushTableLimitToGameSer(instance,**argvs):
     mytableLimit.minval = instance.min_cents
     mytableLimit.maxval = instance.max_cents
 
-    return requests.post('%s:%s'%(url,port),mytableLimit.SerializeToString())
+    try:
+        requests.post('%s:%s'%(url,port),mytableLimit.SerializeToString())
+    except Exception, e:
+            response = HttpResponseRedirect("/admin/baccarat_Controll/ttablelimitset")
+            print 'Cannot send TableLimit to the Game Server.'
+            return response
+
 
 @admin.register(TPersonalLimitset)
 class TPersonalLimitsetAdmin(admin.ModelAdmin):
