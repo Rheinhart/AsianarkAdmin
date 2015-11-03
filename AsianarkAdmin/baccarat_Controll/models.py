@@ -51,7 +51,8 @@ class TVideo(models.Model):
         memopr.changeVideoInMem(mdata)
 
     def add_video(self):
-        memopr.refreshTableDbtoMem()
+        pass
+        memopr.refreshVideoDbtoMem()
 
     def __unicode__(self):
         return self.videoid
@@ -71,17 +72,18 @@ class TTable(models.Model):
 
     tableid = models.CharField(db_column='TableID',verbose_name= u'桌台id', primary_key=True, max_length=16)
     videoid = models.ForeignKey(TVideo,db_column= 'VideoID',verbose_name=u'视频id',help_text=u'不要在这里执行删除操作,最好也不要在这里添加视频')
-    gametype = models.CharField(db_column='GameType',verbose_name= u'玩法',choices=GAMETYPE,default='BJL',max_length=16)
+    #gametype = models.CharField(db_column='GameType',verbose_name= u'玩法',choices=GAMETYPE,default='BJL',max_length=16)
     limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',max_length=4,help_text=u'请与桌台限红表中数据保持一致')
     seats = models.IntegerField(db_column='Seats',validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'座位数')
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
 
     def change_table(self):
-        mdata = {'videoid':self.videoid.videoid,'tableid':self.tableid,'flag':self.flag,'seats':self.seats,'gametype':self.gametype,'limitid':self.limitid}
+        mdata = {'videoid':self.videoid.videoid,'tableid':self.tableid,'flag':self.flag,'seats':self.seats,'limitid':self.limitid}
         memopr.changeTableInMem(mdata)
 
     def add_table(self):
-        memopr.refreshTableDbtoMem()
+        pass
+        # memopr.refreshTableDbtoMem()
 
     def __unicode__(self):
         return self.tableid

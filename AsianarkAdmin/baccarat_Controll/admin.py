@@ -99,7 +99,7 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
 class TRoundAdmin(admin.ModelAdmin):
 
     list_display = ('roundcode','gametype','videoid','dealer','cards','begintime','closetime','shoecode')
-    search_fields = ('roundcode','gametype','videoid','dealer','cards','begintime','closetime','shoecode')
+    search_fields = ('roundcode','gametype','dealer','cards','shoecode')
     list_filter = ('gametype','dealer','videoid','cards','begintime','closetime')
     ordering = ('roundcode',)
     #readonly_fields = ('roundcode',)
@@ -136,26 +136,26 @@ class TVideoAdmin(admin.ModelAdmin):
         """列表页面
         The 'change list' admin view for this model.
         """
-        memopr.syncVideoMemToDb()
+        memopr.syncVideoMemAndDb()
         return super(TVideoAdmin, self).changelist_view(request,extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
         if change: #change
             #obj_old = self.model.objects.get(pk=obj.pk)
-            print 'change:In memcached'
+            print 'change'
             obj.change_video()
         else: #add
-            print 'add:Database to memcached'
+            print 'add'
             obj.save()
-            obj.add_video()
+
 
 @admin.register(TTable)
 class TTableAdmin(admin.ModelAdmin):
 
-    list_display = ('tableid','videoid','gametype','seats','flag')
-    search_fields = ('tableid','videoid','gametype','seats','flag')
+    list_display = ('tableid','videoid','seats','flag')
+    search_fields = ('tableid','videoid','seats','flag')
     ordering = ('tableid','seats','videoid')
-    list_filter = ('videoid','gametype','flag')
+    list_filter = ('videoid','flag')
     readonly_fields = ('tableid',)
 
     def get_actions(self, request):
@@ -176,19 +176,18 @@ class TTableAdmin(admin.ModelAdmin):
         """列表页面
         The 'change list' admin view for this model.
         """
-        memopr.syncVideoMemToDb()
-        memopr.syncTableMemToDb()
+        memopr.syncVideoMemAndDb()
+        memopr.syncTableMemAndDb()
         return super(TTableAdmin, self).changelist_view(request,extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
         if change: #change,在修改页面
-            #obj_old = self.model.objects.get(pk=obj.pk)
-            print 'change: Mem'
+            print 'change'
             obj.change_table()
         else: #add,在添加页面
-            print 'add:Db to Mem'
+            print 'add'
             obj.save()
-            obj.add_table()
+
 
 #def getVideoInfoFromGameSer(**kwargs):
 #    command = 50002

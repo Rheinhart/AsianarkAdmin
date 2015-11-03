@@ -43,7 +43,7 @@ INSTALLED_APPS = (
     'AsianarkAdmin.baccarat_Controll',
     'AsianarkAdmin.serverinfo',
 
-    'debug_toolbar',
+    #'debug_toolbar',
 
 )
 
@@ -51,6 +51,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
@@ -157,6 +158,6 @@ GAME_SERVER = {
     }
 }
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+#SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
 

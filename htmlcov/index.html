@@ -1,0 +1,392 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Coverage report</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.index_ready);
+    </script>
+</head>
+<body class="indexfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage report:
+            <span class="pc_cov">51%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <form id="filter_container">
+            <input id="filter" type="text" value="" placeholder="filter..." />
+        </form>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+    <p class="legend">Hot-keys on this page</p>
+    <div>
+    <p class="keyhelp">
+        <span class="key">n</span>
+        <span class="key">s</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        
+        <span class="key">c</span> &nbsp; change column sorting
+    </p>
+    </div>
+</div>
+
+<div id="index">
+    <table class="index">
+        <thead>
+            
+            <tr class="tablehead" title="Click to sort">
+                <th class="name left headerSortDown shortkey_n">Module</th>
+                <th class="shortkey_s">statements</th>
+                <th class="shortkey_m">missing</th>
+                <th class="shortkey_x">excluded</th>
+                
+                <th class="right shortkey_c">coverage</th>
+            </tr>
+        </thead>
+        
+        <tfoot>
+            <tr class="total">
+                <td class="name left">Total</td>
+                <td>1159</td>
+                <td>573</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="586 1159">51%</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin___init___py.html">AsianarkAdmin\__init__.py</a></td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="0 0">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_admin_ip_whitelist___init___py.html">AsianarkAdmin\admin_ip_whitelist\__init__.py</a></td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="0 0">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_admin_ip_whitelist_admin_py.html">AsianarkAdmin\admin_ip_whitelist\admin.py</a></td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="3 3">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_admin_ip_whitelist_middleware_py.html">AsianarkAdmin\admin_ip_whitelist\middleware.py</a></td>
+                <td>46</td>
+                <td>33</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="13 46">28%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_admin_ip_whitelist_models_py.html">AsianarkAdmin\admin_ip_whitelist\models.py</a></td>
+                <td>29</td>
+                <td>9</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="20 29">69%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_baccarat_Controll___init___py.html">AsianarkAdmin\baccarat_Controll\__init__.py</a></td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="0 0">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_baccarat_Controll_admin_py.html">AsianarkAdmin\baccarat_Controll\admin.py</a></td>
+                <td>119</td>
+                <td>58</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="61 119">51%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_baccarat_Controll_memopr_py.html">AsianarkAdmin\baccarat_Controll\memopr.py</a></td>
+                <td>58</td>
+                <td>30</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="28 58">48%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_baccarat_Controll_models_py.html">AsianarkAdmin\baccarat_Controll\models.py</a></td>
+                <td>154</td>
+                <td>11</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="143 154">93%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_baccarat_Controll_views_py.html">AsianarkAdmin\baccarat_Controll\views.py</a></td>
+                <td>5</td>
+                <td>2</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="3 5">60%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_bootstrap_admin___init___py.html">AsianarkAdmin\bootstrap_admin\__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 1">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_serverinfo___init___py.html">AsianarkAdmin\serverinfo\__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 1">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_serverinfo_admin_py.html">AsianarkAdmin\serverinfo\admin.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 1">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_serverinfo_models_py.html">AsianarkAdmin\serverinfo\models.py</a></td>
+                <td>20</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="20 20">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_settings_py.html">AsianarkAdmin\settings.py</a></td>
+                <td>26</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="26 26">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools___init___py.html">AsianarkAdmin\tools\__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 1">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem___init___py.html">AsianarkAdmin\tools\fireflymem\__init__.py</a></td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="0 0">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem_dbpool_py.html">AsianarkAdmin\tools\fireflymem\dbpool.py</a></td>
+                <td>12</td>
+                <td>1</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="11 12">92%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem_madminanager_py.html">AsianarkAdmin\tools\fireflymem\madminanager.py</a></td>
+                <td>16</td>
+                <td>5</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="11 16">69%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem_memclient_py.html">AsianarkAdmin\tools\fireflymem\memclient.py</a></td>
+                <td>54</td>
+                <td>30</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="24 54">44%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem_memobject_py.html">AsianarkAdmin\tools\fireflymem\memobject.py</a></td>
+                <td>51</td>
+                <td>34</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="17 51">33%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem_mmode_py.html">AsianarkAdmin\tools\fireflymem\mmode.py</a></td>
+                <td>234</td>
+                <td>188</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="46 234">20%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem_singleton_py.html">AsianarkAdmin\tools\fireflymem\singleton.py</a></td>
+                <td>8</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 8">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_fireflymem_util_py.html">AsianarkAdmin\tools\fireflymem\util.py</a></td>
+                <td>193</td>
+                <td>171</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="22 193">11%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_protobuff___init___py.html">AsianarkAdmin\tools\protobuff\__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 1">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_protobuff_bulletin_pb2_py.html">AsianarkAdmin\tools\protobuff\bulletin_pb2.py</a></td>
+                <td>14</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="14 14">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_protobuff_login_pb2_py.html">AsianarkAdmin\tools\protobuff\login_pb2.py</a></td>
+                <td>30</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="30 30">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_tools_protobuff_tableLimit_pb2_py.html">AsianarkAdmin\tools\protobuff\tableLimit_pb2.py</a></td>
+                <td>19</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="19 19">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_urls_py.html">AsianarkAdmin\urls.py</a></td>
+                <td>8</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 8">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_userinfo___init___py.html">AsianarkAdmin\userinfo\__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="1 1">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_userinfo_admin_py.html">AsianarkAdmin\userinfo\admin.py</a></td>
+                <td>9</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="9 9">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="AsianarkAdmin_userinfo_models_py.html">AsianarkAdmin\userinfo\models.py</a></td>
+                <td>39</td>
+                <td>1</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="38 39">97%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="manage_py.html">manage.py</a></td>
+                <td>6</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="6 6">100%</td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    <p id="no_rows">
+        No items found using the specified filter.
+    </p>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="https://coverage.readthedocs.org">coverage.py v4.0.1</a>,
+            created at 2015-11-03 13:13
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
