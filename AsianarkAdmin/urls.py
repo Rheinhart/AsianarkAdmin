@@ -22,4 +22,12 @@ urlpatterns = [
     url(r'^$','AsianarkAdmin.baccarat_Controll.views.index',name='index'),
 ]
 
-admin.site.site_header = 'Asianark Administration System'
+
+class AsianarkAdminSite(admin.AdminSite):
+    """Set Adminsite Title
+    """
+    admin.site.site_header = 'Asianark Administration System'
+    admin.site.index_title = 'Baccarat Admin'
+    admin.site.site_title = 'Asianark'
+
+admin.admin_site = AsianarkAdminSite()
