@@ -76,8 +76,8 @@ def pushTableLimitToGameSer(instance,**argvs):
     mytableLimit = tableLimit_pb2.tableLimit()
     mytableLimit.limitid = instance.limitid
     mytableLimit.playtype = instance.playtype
-    mytableLimit.min = instance.min
-    mytableLimit.max = instance.max
+    mytableLimit.minval = instance.min_cents
+    mytableLimit.maxval = instance.max_cents
     mytableLimit.flag = instance.flag
 
     return requests.post('%s:%s'%(url,port),mytableLimit.SerializeToString())
