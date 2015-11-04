@@ -17,13 +17,13 @@ class Memmode_Operation:
         """set the mamcache and database """
 
 
-        self.hostname = [DATABASES['default'].get('HOST')][0]
+        self.host = [DATABASES['default'].get('HOST')][0]
         self.user = [DATABASES['default'].get('USER')][0]
         self.password = [DATABASES['default'].get('PASSWORD')][0]
         self.port = int([DATABASES['default'].get('PORT')][0])
         self.dbname = [DATABASES['default'].get('NAME')][0]
         self.charset = "utf8"
-        dbpool.initPool(host = self.hostname, user = self.user, passwd = self.password,
+        dbpool.initPool(host = self.host, user = self.user, passwd = self.password,
                     port = self.port, db = self.dbname, charset = self.charset)
 
         self.address = [CACHES['default'].get('LOCATION')]
