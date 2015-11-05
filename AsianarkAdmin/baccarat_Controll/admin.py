@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
 from django.http import HttpResponseRedirect
 from django.db.models.signals import post_save
-from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TVideo,TTable
+from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TVideo,TTable,TOrders
 from AsianarkAdmin.settings import GAME_SERVER
 from memopr import memopr
 
@@ -43,24 +43,27 @@ class TBulletinAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.save()
-        #obj.pushBulletinToGameSer()
+
 
 @receiver(post_save, sender=TBulletin)
 def pushBulletinToGameSer(sender,instance,**argvs):
-        """push bulletin to the gameserver after which saved into the database
+        """push new bulletin to the gameserver after which saved into the database
         """
-        command = 20037
-
         #mybulletin = bulletin_pb2.bulletinResponse()
         #mybulletin.beginTime = instance.create_time.strftime("%Y-%m-%d %H:%M:%S")
         #mybulletin.endTime = instance.expired_time.strftime("%Y-%m-%d %H:%M:%S")
         #mybulletin.text = instance.text
-        try:
-            requests.get('http://%s:%s/bulletin?command=%s'%(url,port,command))
-        except Exception, e:
-            response = HttpResponseRedirect("/admin")
-            print 'Cannot send bulletin to the Game Server.'
-            return response
+        command = 50013
+        if instance.flag == 0:
+            try:
+                reponse=requests.get('http://%s:%s/bulletin?command=%s'%(url,port,command))
+            except Exception, e:
+                response = HttpResponseRedirect("/admin")
+                print 'Cannot send bulletin to the Game Server.'
+                return response
+        else:
+            return HttpResponseRedirect("/admin")
+
 
 @admin.register(TTableLimitset)
 class TTableLimitsetAdmin(admin.ModelAdmin):
@@ -80,7 +83,7 @@ def pushTableLimitToGameSer(instance,**argvs):
     mytableLimit.maxval = instance.max_cents
 
     try:
-        requests.post('%s:%s'%(url,port),mytableLimit.SerializeToString())
+        reponse=requests.post('%s:%s'%(url,port),mytableLimit.SerializeToString())
     except Exception, e:
             response = HttpResponseRedirect("/admin/baccarat_Controll/ttablelimitset")
             print 'Cannot send TableLimit to the Game Server.'
@@ -93,6 +96,32 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
     list_display = ('limitid','playtype','min_cents','max_cents','flag')
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
     list_filter = ('limitid','playtype','min_cents','max_cents','flag')
+
+
+@admin.register(TOrders)
+class TOrdersAdmin(admin.ModelAdmin):
+
+    def recalcRound(self, request, queryset):
+
+        message = u"重新结算注单"
+        self.message_user(request, "%s" % message)
+        command = 50016
+        try:
+            response=requests.get('http://%s:%s/order?command=%s'%(url,port,command))
+        except Exception, e:
+            message = u'Cannot send recalcRound to the Game Server'
+            self.message_user(request, "%s" % message)
+            print message
+
+    recalcRound.short_description = u'重新结算局注单'
+
+    def cancelOrder(self, request, queryset):
+        pass
+    cancelOrder.short_description = u'取消结算局注单'
+
+
+    #list_display = ()
+    actions = [recalcRound,cancelOrder]
 
 
 @admin.register(TRounds)
@@ -121,10 +150,6 @@ class TVideoAdmin(admin.ModelAdmin):
             if 'delete_selected' in actions:
                 del actions['delete_selected']
         return actions
-
-        #def mem_refresh(self, request, queryset):
-        #updateVideoMemToDb()
-        #mem_refresh.short_description = u'更新所有的视频信息表'
 
     def get_readonly_fields(self,request,obj=None):
         if obj:

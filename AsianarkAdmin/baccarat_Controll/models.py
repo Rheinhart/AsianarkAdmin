@@ -52,7 +52,6 @@ class TVideo(models.Model):
 
     def add_video(self):
         pass
-        memopr.refreshVideoDbtoMem()
 
     def __unicode__(self):
         return self.videoid
