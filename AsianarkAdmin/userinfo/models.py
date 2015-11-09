@@ -22,6 +22,27 @@ class TCustomers(models.Model):
     last_login_ip = models.GenericIPAddressField(db_column='Last_login_ip',verbose_name= u'最有一次登录IP', max_length=16)
     pwd_expired_time = models.DateTimeField(db_column='Pwd_expired_time',verbose_name= u'密码失效时间')
 
+    def mycreate_time(self):
+        if not self.create_time:
+            return self.create_time
+        else:
+            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+
+    def mylast_login_time(self):
+        if not self.last_login_time:
+            return self.last_login_time
+        else:
+            return self.last_login_time.strftime('%Y-%m-%d %H:%M:%S')
+    mylast_login_time.short_description = u'最后一次登录时间'
+
+    def mypwd_expired_time(self):
+        if not self.pwd_expired_time:
+            return self.pwd_expired_time
+        else:
+            return self.pwd_expired_time.strftime('%Y-%m-%d %H:%M:%S')
+    mypwd_expired_time.short_description = u'密码失效时间'
+
 
     def __unicode__(self):
         '''
@@ -46,6 +67,13 @@ class TCustomerTrans(models.Model):
     before_credit_cents = models.IntegerField(db_column='Before_credit_Cents',verbose_name=u'操作前额度')
     after_credit_cents = models.IntegerField(db_column='After_credit_Cents',verbose_name=u'操作后额度')
     remark = models.CharField(max_length=100,verbose_name=u'附注')
+
+    def myaction_time(self):
+        if not self.action_time:
+            return self.action_time
+        else:
+            return self.action_time.strftime('%Y-%m-%d %H:%M:%S')
+    myaction_time.short_description = u'操作执行时间'
 
     def __unicode__(self):
         '''
