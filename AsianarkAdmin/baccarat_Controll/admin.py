@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
 from django.http import HttpResponseRedirect
 from django.db.models.signals import post_save
-from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TVideo,TTable,TOrders
+from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TRecalcRounds,TVideo,TTable,TOrders
 from AsianarkAdmin.settings import GAME_SERVER
 from memopr import memopr
 
@@ -78,6 +78,7 @@ class TTableLimitsetAdmin(admin.ModelAdmin):
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
     list_filter = ('limitid','playtype','min_cents','max_cents','flag')
 
+
 @receiver(post_save, sender=TTableLimitset)
 def pushTableLimitToGameSer(instance,**argvs):
     """push TableLimit message to the gameserver after which saved into the database
@@ -103,21 +104,12 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
     list_filter = ('limitid','playtype','min_cents','max_cents','flag')
 
-class TOrdersForm(forms.ModelForm):
-
-    #create_time=forms.DateTimeField(input_formats=['%m/%d/%Y %H:%M:%S'])
-    class Meta:
-        model = TOrders
-        fields = '__all__'
 
 @admin.register(TOrders)
 class TOrdersAdmin(admin.ModelAdmin):
 
-
-    form = TOrdersForm
-
     def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
+         admin.ModelAdmin.list_per_page=5
 
     setListPerPage_30.short_description = u'每页显示30条'
 
@@ -161,7 +153,7 @@ class TOrdersAdmin(admin.ModelAdmin):
     cancelOrder.short_description = u'取消结算局注单'
 
 
-    list_display = ('billno','gametype','loginname','agentcode','roundcode','videoid','tableid','seat','dealer','flag','playtype',
+    list_display = ('billno','roundcode','loginname','agentcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
                     'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','mycreate_time',
                     'myreckon_time','create_ip')
     readonly_fields = ('billno','gametype','loginname','agentcode','roundcode','videoid','tableid','seat','dealer','flag','playtype',
@@ -169,7 +161,7 @@ class TOrdersAdmin(admin.ModelAdmin):
                     'reckon_time','create_ip','hashcode')
     search_fields = ('billno','loginname','agentcode','roundcode','videoid','tableid','create_time','reckon_time',)
     list_filter = ('create_time','reckon_time','flag')
-    ordering = ('-create_time','billno')
+    ordering = ('-create_time','-billno')
 
     def has_add_permission(self, request,obj=None):
         return False
@@ -186,7 +178,6 @@ class TOrdersAdmin(admin.ModelAdmin):
         return actions
 
     actions = [recalcRound,cancelOrder,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
 
 
 @admin.register(TRounds)
@@ -208,6 +199,16 @@ class TRoundAdmin(admin.ModelAdmin):
         actions = super(TRoundAdmin, self).get_actions(request)
         del actions['delete_selected']
         return actions
+
+
+@admin.register(TRecalcRounds)
+class TRecalcRoundsAdmin(admin.ModelAdmin):
+    list_display = ('actionid','action','mycreate_time','roundcode')
+    search_fields = ('actionid','create_time','action','roundcode')
+    list_filter = ('actionid','action','create_time','roundcode')
+    ordering = ('-roundcode','-create_time')
+    #readonly_fields = ('actionid','action','mycreate_time','roundcode')
+
 
 
 @admin.register(TVideo)

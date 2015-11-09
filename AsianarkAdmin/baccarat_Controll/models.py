@@ -217,6 +217,23 @@ class TRounds(models.Model):
     closetime = models.DateTimeField(blank=True, null=True,verbose_name= u'结束时间')
     shoecode = models.CharField(max_length=16,verbose_name='靴号')
 
+    def mybegintime(self):
+        if not self.begintime:
+            return self.begintime
+        else:
+            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mybegintime.short_description = u'开始时间'
+
+    def myclosetime(self):
+        if not self.closetime:
+            return self.closetime
+        else:
+            return self.closetime.strftime('%Y-%m-%d %H:%M:%S')
+    myclosetime.short_description = u'结束时间'
+
+    def __unicode__(self):
+        return '%s'%self.roundcode
+
     class Meta:
         managed = False
         db_table = 't_rounds'
@@ -226,16 +243,26 @@ class TRounds(models.Model):
 
 class TRecalcRounds(models.Model):
 
-    actionid = models.IntegerField(primary_key=True)
+    actionid = models.IntegerField(primary_key=True,verbose_name=u'操作id')
     create_time = models.DateTimeField(db_column='Create_time',verbose_name= u'创建时间',default=datetime.datetime.now)
-    action = models.CharField(max_length=64)
-    roundcode = models.CharField(max_length=16)
+    action = models.CharField(max_length=64,verbose_name=u'操作')
+    roundcode = models.CharField(max_length=16,verbose_name=u'游戏局号')
+
+    def mycreate_time(self):
+        if not self.create_time:
+            return self.create_time
+        else:
+            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+
+    def __unicode__(self):
+        return '%s'%self.actionid
 
     class Meta:
         managed = False
         db_table = 't_recalc_rounds'
-        verbose_name =  u'重新结算局号记录表'
-        verbose_name_plural =  u'重新结算局号记录表'
+        verbose_name =  u'重新结算局记录表'
+        verbose_name_plural =  u'重新结算局记录表'
 
 
 
