@@ -4,7 +4,7 @@
 """
 
 from django.contrib import admin
-from AsianarkAdmin.userinfo.models import TCustomers,TCustomerTrans
+from AsianarkAdmin.userinfo.models import TCustomers,TCustomerTrans,TAgents
 
 class DelegateFilter(admin.SimpleListFilter):
 
@@ -133,3 +133,8 @@ class TRoundAdmin(admin.ModelAdmin):
         return super(TRoundAdmin, self).changelist_view(request, extra_context)
 
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+
+
+@admin.register(TAgents)
+class TRoundAdmin(admin.ModelAdmin):
+    list_display = ('agentcode','agentname')

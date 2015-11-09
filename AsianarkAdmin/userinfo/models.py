@@ -8,6 +8,7 @@ import datetime
 class TCustomers(models.Model):
 
     FLAG = ((0,u'启用'),(1,u'禁用'),)
+    LIMITID=(('A','A'),('B','B'),('C','C'),('D','D'))
 
     loginname = models.CharField(db_column='Loginname',verbose_name= u'用户名', max_length=32,primary_key=True)
     agentcode = models.IntegerField(db_column='AgentCode',verbose_name= u'代理CODE')
@@ -15,7 +16,7 @@ class TCustomers(models.Model):
     nickname = models.CharField(max_length=32,verbose_name= u'昵称')
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
     credit_cents = models.IntegerField(db_column='Credit_cents',verbose_name=u'信用额度')
-    limitid = models.CharField(db_column='limitID',verbose_name= u'个人盘口ID',max_length=4)
+    limitid = models.CharField(db_column='limitID',choices=LIMITID,verbose_name= u'个人限红ID',max_length=4)
     create_time = models.DateTimeField(db_column='Create_time',verbose_name= u'创建时间',default=datetime.datetime.now)
     create_ip = models.GenericIPAddressField(db_column='Create_ip', max_length=16,verbose_name=u'创建IP')
     last_login_time = models.DateTimeField(db_column='Last_login_time',verbose_name= u'最后一次登录时间')
@@ -52,8 +53,8 @@ class TCustomers(models.Model):
     class Meta:
         managed = False
         db_table = 't_customers'
-        verbose_name =  u'用户信息表'
-        verbose_name_plural =  u'用户信息表'
+        verbose_name =  u'用户信息'
+        verbose_name_plural =  u'用户信息'
 
 
 class TCustomerTrans(models.Model):
@@ -83,7 +84,23 @@ class TCustomerTrans(models.Model):
     class Meta:
         managed = False
         db_table = 't_customer_trans'
-        verbose_name =  u'用户额度记录表'
-        verbose_name_plural =  u'用户额度记录表'
+        verbose_name =  u'用户额度记录'
+        verbose_name_plural =  u'用户额度记录'
+
+
+class TAgents(models.Model):
+    agentcode = models.IntegerField(db_column='AgentCode', primary_key=True)
+    agentname = models.CharField(db_column='AgentName', max_length=32)
+    password = models.CharField(db_column='Password',max_length=32)
+    flag = models.IntegerField(db_column='Flag')
+    trytype = models.IntegerField(db_column='Try_Type')
+    create_time = models.DateTimeField(db_column='Create_time',default=datetime.datetime.now)
+    create_ip = models.GenericIPAddressField(db_column='Create_ip',verbose_name= u'创建IP', max_length=16)
+
+    class Meta:
+        managed = False
+        db_table = 't_agents'
+        verbose_name = u'代理信息'
+        verbose_name_plural = u'代理信息'
 
 

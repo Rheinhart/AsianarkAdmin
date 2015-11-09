@@ -94,8 +94,8 @@ class TTableLimitset(models.Model):
     class Meta:
         managed = False
         db_table = 't_table_limitset'
-        verbose_name =  u'桌台限红表'
-        verbose_name_plural =  u'桌台限红表'
+        verbose_name =  u'桌台限红'
+        verbose_name_plural =  u'桌台限红'
 
 
 class TTable(models.Model):
@@ -103,7 +103,7 @@ class TTable(models.Model):
 
     FLAG = ((0,u'启用'),(1,u'禁用'),)
     GAMETYPE = (('BJL',u'百家乐'),('DDZ',u'斗地主'))
-    LIMITID=(('A','A'),('B','B'),('C','C'),)
+    LIMITID=(('A','A'),('B','B'),('C','C'),('D','D'))
 
     tableid = models.CharField(db_column='TableID',verbose_name= u'桌台id', primary_key=True, max_length=16)
     videoid = models.ForeignKey(TVideo,db_column= 'VideoID',verbose_name=u'视频id',help_text=u'不要在这里执行删除操作,最好也不要在这里添加视频')
@@ -148,8 +148,8 @@ class TPersonalLimitset(models.Model):
 
         managed = False
         db_table = 't_personal_limitset'
-        verbose_name =  u'个人限红表'
-        verbose_name_plural =  u'个人限红表'
+        verbose_name =  u'个人限红'
+        verbose_name_plural =  u'个人限红'
 
 
 class TOrders(models.Model):
@@ -197,8 +197,8 @@ class TOrders(models.Model):
     class Meta:
         managed = False
         db_table = 't_orders'
-        verbose_name =  u'游戏注单表'
-        verbose_name_plural =  u'游戏注单表'
+        verbose_name =  u'游戏注单'
+        verbose_name_plural =  u'游戏注单'
 
 
 class TRounds(models.Model):
@@ -239,8 +239,8 @@ class TRounds(models.Model):
     class Meta:
         managed = False
         db_table = 't_rounds'
-        verbose_name =  u'游戏局信息表'
-        verbose_name_plural =  u'游戏局信息表'
+        verbose_name =  u'游戏局信息'
+        verbose_name_plural =  u'游戏局信息'
 
 
 class TRecalcRounds(models.Model):
@@ -263,8 +263,8 @@ class TRecalcRounds(models.Model):
     class Meta:
         managed = False
         db_table = 't_recalc_rounds'
-        verbose_name =  u'重新结算游戏局记录表'
-        verbose_name_plural =  u'重新结算游戏局记录表'
+        verbose_name =  u'重新结算游戏局记录'
+        verbose_name_plural =  u'重新结算游戏局记录'
 
 
 
