@@ -19,10 +19,11 @@ class TBulletin(models.Model):
     """公告信息
     """
     FLAG = ((0,u'启用'),(1,u'禁用'),)
+    tomorrow = datetime.datetime.now()+datetime.timedelta(days = 1)
 
     bulletinid = models.AutoField(verbose_name= u'公告id',max_length=11,primary_key=True)
-    create_time = models.DateTimeField(verbose_name= u'创建时间',default=datetime.datetime.now)
-    expired_time = models.DateTimeField(verbose_name= u'到期时间',default=datetime.datetime.today()+datetime.timedelta(days = 1))
+    create_time = models.DateTimeField(verbose_name= u'创建时间',default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    expired_time = models.DateTimeField(verbose_name= u'到期时间',default=tomorrow) #多一天
     text = models.TextField(max_length=200,verbose_name= u'公告内容')
     flag = models.IntegerField(verbose_name= u'是否禁用',choices=FLAG,default=0)   #0:启用,1:禁用
 
