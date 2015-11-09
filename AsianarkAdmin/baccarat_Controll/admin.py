@@ -3,6 +3,7 @@
 @__author__ = 'Thomas'
 """
 from django.contrib import admin
+from django import forms
 from AsianarkAdmin.tools.protobuff import login_pb2,tableLimit_pb2,bulletin_pb2
 import requests
 from django.dispatch import receiver
@@ -36,10 +37,11 @@ def pushLoginMessageToGameSer(**kwargs):
 @admin.register(TBulletin)
 class TBulletinAdmin(admin.ModelAdmin):
 
-    list_display = ('bulletinid','text','create_time','expired_time','flag')
-    search_fields = ('bulletinid','text','flag')
-    list_filter = ('create_time','expired_time','flag')
+    list_display = ('bulletinid','text','mycreate_time','myexpired_time')
+    search_fields = ('bulletinid','text')
+    list_filter = ('create_time','expired_time')
     ordering = ('-create_time','bulletinid')
+    readonly_fields = ('create_time','flag')
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -47,22 +49,26 @@ class TBulletinAdmin(admin.ModelAdmin):
 
 @receiver(post_save, sender=TBulletin)
 def pushBulletinToGameSer(sender,instance,**argvs):
-        """push new bulletin to the gameserver after which saved into the database
-        """
+    """push new bulletin to the gameserver after which saved into the database
+    """
         #mybulletin = bulletin_pb2.bulletinResponse()
         #mybulletin.beginTime = instance.create_time.strftime("%Y-%m-%d %H:%M:%S")
         #mybulletin.endTime = instance.expired_time.strftime("%Y-%m-%d %H:%M:%S")
         #mybulletin.text = instance.text
-        command = 50013
-        if instance.flag == 0:
-            try:
-                reponse=requests.get('http://%s:%s/bulletin?command=%s'%(url,port,command))
-            except Exception, e:
-                response = HttpResponseRedirect("/admin")
-                print 'Cannot send bulletin to the Game Server.'
-                return response
-        else:
-            return HttpResponseRedirect("/admin")
+    command = 50013
+    if instance.flag == 0:
+        try:
+            response=requests.get('http://%s:%s/bulletin?command=%s'%(url,port,command))
+            if response.content == '60013':
+                message = response.content
+                print 'code:%s'%message
+        except Exception, e:
+            response = HttpResponseRedirect("/admin")
+            print 'Cannot send bulletin to the Game Server.'
+            return response.content
+    else:
+        return HttpResponseRedirect("/admin")
+
 
 
 @admin.register(TTableLimitset)
@@ -97,9 +103,43 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
     list_filter = ('limitid','playtype','min_cents','max_cents','flag')
 
+class TOrdersForm(forms.ModelForm):
+
+    #create_time=forms.DateTimeField(input_formats=['%m/%d/%Y %H:%M:%S'])
+    class Meta:
+        model = TOrders
+        fields = '__all__'
 
 @admin.register(TOrders)
 class TOrdersAdmin(admin.ModelAdmin):
+
+
+    form = TOrdersForm
+
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+
+    setListPerPage_30.short_description = u'每页显示30条'
+
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+
+    setListPerPage_50.short_description = u'每页显示50条'
+
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+
+    setListPerPage_100.short_description = u'每页显示100条'
+
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+
+    setListPerPage_300.short_description = u'每页显示300条'
+
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+
+    setListPerPage_1000.short_description = u'每页显示1000条'
 
     def recalcRound(self, request, queryset):
 
@@ -107,7 +147,8 @@ class TOrdersAdmin(admin.ModelAdmin):
         self.message_user(request, "%s" % message)
         command = 50016
         try:
-            response=requests.get('http://%s:%s/order?command=%s'%(url,port,command))
+            response=requests.get('http://%s:%s/order?command=%s?videoid=%s?roundcode=%s'%(url,port,command,'T01','001'))
+            print response
         except Exception, e:
             message = u'Cannot send recalcRound to the Game Server'
             self.message_user(request, "%s" % message)
@@ -120,8 +161,32 @@ class TOrdersAdmin(admin.ModelAdmin):
     cancelOrder.short_description = u'取消结算局注单'
 
 
-    #list_display = ()
-    actions = [recalcRound,cancelOrder]
+    list_display = ('billno','gametype','loginname','agentcode','roundcode','videoid','tableid','seat','dealer','flag','playtype',
+                    'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','mycreate_time',
+                    'myreckon_time','create_ip')
+    readonly_fields = ('billno','gametype','loginname','agentcode','roundcode','videoid','tableid','seat','dealer','flag','playtype',
+                    'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','create_time',
+                    'reckon_time','create_ip','hashcode')
+    search_fields = ('billno','loginname','agentcode','roundcode','videoid','tableid','create_time','reckon_time',)
+    list_filter = ('create_time','reckon_time','flag')
+    ordering = ('-create_time','billno')
+
+    def has_add_permission(self, request,obj=None):
+        return False
+
+    def has_delete_permission(self,request,obj=None):
+        return False
+
+    def has_add_permission(self, request,obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super(TOrdersAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    actions = [recalcRound,cancelOrder,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+
 
 
 @admin.register(TRounds)
@@ -131,7 +196,18 @@ class TRoundAdmin(admin.ModelAdmin):
     search_fields = ('roundcode','gametype','dealer','cards','shoecode')
     list_filter = ('gametype','dealer','videoid','cards','begintime','closetime')
     ordering = ('roundcode',)
-    #readonly_fields = ('roundcode',)
+    readonly_fields = ('roundcode','gametype','videoid','dealer','cards','begintime','closetime','shoecode',)
+
+    def has_add_permission(self, request,obj=None):
+        return False
+
+    def has_delete_permission(self,request,obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super(TRoundAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
 
 
 @admin.register(TVideo)
