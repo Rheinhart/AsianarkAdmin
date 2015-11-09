@@ -46,6 +46,45 @@ class TBulletinAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.save()
 
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+
+    setListPerPage_30.short_description = u'每页显示30条'
+
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+
+    setListPerPage_50.short_description = u'每页显示50条'
+
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+
+    setListPerPage_100.short_description = u'每页显示100条'
+
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+
+    setListPerPage_300.short_description = u'每页显示300条'
+
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
+    def changelist_view(self, request, extra_context=None):
+        """不选择object的前提下执行action
+        """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TBulletin.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.bulletinid)})
+                request._set_post(post)
+        return super(TBulletinAdmin, self).changelist_view(request, extra_context)
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+
+
 
 @receiver(post_save, sender=TBulletin)
 def pushBulletinToGameSer(sender,instance,**argvs):
@@ -109,7 +148,7 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
 class TOrdersAdmin(admin.ModelAdmin):
 
     def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=5
+         admin.ModelAdmin.list_per_page=30
 
     setListPerPage_30.short_description = u'每页显示30条'
 
@@ -132,6 +171,17 @@ class TOrdersAdmin(admin.ModelAdmin):
          admin.ModelAdmin.list_per_page=1000
 
     setListPerPage_1000.short_description = u'每页显示1000条'
+
+    def changelist_view(self, request, extra_context=None):
+        """不选择object的前提下执行action
+        """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TOrders.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.billno)})
+                request._set_post(post)
+        return super(TOrdersAdmin, self).changelist_view(request, extra_context)
 
     def recalcRound(self, request, queryset):
 
@@ -180,6 +230,7 @@ class TOrdersAdmin(admin.ModelAdmin):
     actions = [recalcRound,cancelOrder,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
+
 @admin.register(TRounds)
 class TRoundAdmin(admin.ModelAdmin):
 
@@ -199,6 +250,48 @@ class TRoundAdmin(admin.ModelAdmin):
         actions = super(TRoundAdmin, self).get_actions(request)
         del actions['delete_selected']
         return actions
+
+    def save_model(self, request, obj, form, change):
+        obj.save()
+
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+
+    setListPerPage_30.short_description = u'每页显示30条'
+
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+
+    setListPerPage_50.short_description = u'每页显示50条'
+
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+
+    setListPerPage_100.short_description = u'每页显示100条'
+
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+
+    setListPerPage_300.short_description = u'每页显示300条'
+
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
+    def changelist_view(self, request, extra_context=None):
+        """不选择object的前提下执行action
+        """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TRounds.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.roundcode)})
+                request._set_post(post)
+        return super(TRoundAdmin, self).changelist_view(request, extra_context)
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+
 
 
 @admin.register(TRecalcRounds)
@@ -234,12 +327,46 @@ class TVideoAdmin(admin.ModelAdmin):
         else:
             return []
 
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+
+    setListPerPage_30.short_description = u'每页显示30条'
+
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+
+    setListPerPage_50.short_description = u'每页显示50条'
+
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+
+    setListPerPage_100.short_description = u'每页显示100条'
+
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+
+    setListPerPage_300.short_description = u'每页显示300条'
+
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
     def changelist_view(self, request, extra_context=None):
-        """列表页面
-        The 'change list' admin view for this model.
+        """不选择object的前提下执行action
         """
+
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TVideo.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.videoid)})
+                request._set_post(post)
+
         memopr.syncVideoMemAndDb()
-        return super(TVideoAdmin, self).changelist_view(request,extra_context=extra_context)
+        return super(TVideoAdmin, self).changelist_view(request, extra_context)
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def save_model(self, request, obj, form, change):
         if change: #change
@@ -254,11 +381,11 @@ class TVideoAdmin(admin.ModelAdmin):
 @admin.register(TTable)
 class TTableAdmin(admin.ModelAdmin):
 
-    list_display = ('tableid','videoid','seats','flag')
-    search_fields = ('tableid','videoid','seats','flag')
+    list_display = ('tableid','videoid','limitid','seats','flag')
+    search_fields = ('tableid','videoid','limitid','seats','flag')
     ordering = ('tableid','seats','videoid')
-    list_filter = ('videoid','flag')
-    readonly_fields = ('tableid',)
+    list_filter = ('videoid','flag','limitid','seats')
+    readonly_fields = ('gametype',)
 
     def get_actions(self, request):
         """只允许特定管理者有删除桌台权限"""
@@ -268,19 +395,46 @@ class TTableAdmin(admin.ModelAdmin):
                 del actions['delete_selected']
         return actions
 
-    def get_readonly_fields(self,request,obj=None):
-        if obj:
-            return ['tableid']
-        else:
-            return []
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+
+    setListPerPage_30.short_description = u'每页显示30条'
+
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+
+    setListPerPage_50.short_description = u'每页显示50条'
+
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+
+    setListPerPage_100.short_description = u'每页显示100条'
+
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+
+    setListPerPage_300.short_description = u'每页显示300条'
+
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+
+    setListPerPage_1000.short_description = u'每页显示1000条'
 
     def changelist_view(self, request, extra_context=None):
-        """列表页面
-        The 'change list' admin view for this model.
+        """不选择object的前提下执行action
         """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TTable.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.tableid)})
+                request._set_post(post)
+
         memopr.syncVideoMemAndDb()
         memopr.syncTableMemAndDb()
-        return super(TTableAdmin, self).changelist_view(request,extra_context=extra_context)
+        return super(TTableAdmin, self).changelist_view(request, extra_context)
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def save_model(self, request, obj, form, change):
         if change: #change,在修改页面

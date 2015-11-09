@@ -77,36 +77,6 @@ class TVideo(models.Model):
         verbose_name_plural =  u'视频信息'
 
 
-class TTable(models.Model):
-    """桌台操作相关"""
-
-    FLAG = ((0,u'启用'),(1,u'禁用'),)
-    GAMETYPE = (('BJL',u'百家乐'),('DDZ',u'斗地主'))
-
-    tableid = models.CharField(db_column='TableID',verbose_name= u'桌台id', primary_key=True, max_length=16)
-    videoid = models.ForeignKey(TVideo,db_column= 'VideoID',verbose_name=u'视频id',help_text=u'不要在这里执行删除操作,最好也不要在这里添加视频')
-    #gametype = models.CharField(db_column='GameType',verbose_name= u'玩法',choices=GAMETYPE,default='BJL',max_length=16)
-    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',max_length=4,help_text=u'请与桌台限红表中数据保持一致')
-    seats = models.IntegerField(db_column='Seats',validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'座位数')
-    flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
-
-    def change_table(self):
-        mdata = {'videoid':self.videoid.videoid,'tableid':self.tableid,'flag':self.flag,'seats':self.seats,'limitid':self.limitid}
-        memopr.changeTableInMem(mdata)
-
-    def add_table(self):
-        pass
-        # memopr.refreshTableDbtoMem()
-
-    def __unicode__(self):
-        return self.tableid
-
-    class Meta:
-        managed = False
-        db_table = 't_table'
-        verbose_name = u'桌台信息'
-        verbose_name_plural = u'桌台信息'
-
 class TTableLimitset(models.Model):
 
     FLAG = ((0,u'启用'),(1,u'禁用'),)
@@ -126,6 +96,38 @@ class TTableLimitset(models.Model):
         db_table = 't_table_limitset'
         verbose_name =  u'桌台限红表'
         verbose_name_plural =  u'桌台限红表'
+
+
+class TTable(models.Model):
+    """桌台操作相关"""
+
+    FLAG = ((0,u'启用'),(1,u'禁用'),)
+    GAMETYPE = (('BJL',u'百家乐'),('DDZ',u'斗地主'))
+    LIMITID=(('A','A'),('B','B'),('C','C'),)
+
+    tableid = models.CharField(db_column='TableID',verbose_name= u'桌台id', primary_key=True, max_length=16)
+    videoid = models.ForeignKey(TVideo,db_column= 'VideoID',verbose_name=u'视频id',help_text=u'不要在这里执行删除操作,最好也不要在这里添加视频')
+    gametype = models.CharField(db_column='GameType',verbose_name= u'玩法',choices=GAMETYPE,default='BJL',max_length=16)
+    limitid = models.CharField(db_column='LimitID',choices=LIMITID,verbose_name= u'限红id',help_text=u'请与桌台限红表中数据保持一致',max_length=4)
+    seats = models.IntegerField(db_column='Seats',validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'座位数',default=7)
+    flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
+
+    def change_table(self):
+        mdata = {'videoid':self.videoid.videoid,'tableid':self.tableid,'flag':self.flag,'seats':self.seats,'limitid':self.limitid}
+        memopr.changeTableInMem(mdata)
+
+    def add_table(self):
+        pass
+        # memopr.refreshTableDbtoMem()
+
+    def __unicode__(self):
+        return self.tableid
+
+    class Meta:
+        managed = False
+        db_table = 't_table'
+        verbose_name = u'桌台信息'
+        verbose_name_plural = u'桌台信息'
 
 
 class TPersonalLimitset(models.Model):
@@ -261,8 +263,8 @@ class TRecalcRounds(models.Model):
     class Meta:
         managed = False
         db_table = 't_recalc_rounds'
-        verbose_name =  u'重新结算局记录表'
-        verbose_name_plural =  u'重新结算局记录表'
+        verbose_name =  u'重新结算游戏局记录表'
+        verbose_name_plural =  u'重新结算游戏局记录表'
 
 
 
