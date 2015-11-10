@@ -47,27 +47,27 @@ class TBulletinAdmin(admin.ModelAdmin):
         obj.save()
 
     def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
+        admin.ModelAdmin.list_per_page=30
 
     setListPerPage_30.short_description = u'每页显示30条'
 
     def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
+        admin.ModelAdmin.list_per_page=50
 
     setListPerPage_50.short_description = u'每页显示50条'
 
     def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
+        admin.ModelAdmin.list_per_page=100
 
     setListPerPage_100.short_description = u'每页显示100条'
 
     def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
+        admin.ModelAdmin.list_per_page=300
 
     setListPerPage_300.short_description = u'每页显示300条'
 
     def setListPerPage_1000(self,request,queset):
-         admin.ModelAdmin.list_per_page=1000
+        admin.ModelAdmin.list_per_page=1000
 
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -149,27 +149,28 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
 class TOrdersAdmin(admin.ModelAdmin):
 
     def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
+        admin.ModelAdmin.list_per_page=30
 
     setListPerPage_30.short_description = u'每页显示30条'
 
     def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
+        admin.ModelAdmin.list_per_page=50
 
     setListPerPage_50.short_description = u'每页显示50条'
 
     def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
+        admin.ModelAdmin.list_per_page=100
 
     setListPerPage_100.short_description = u'每页显示100条'
 
     def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
+        admin.ModelAdmin.list_per_page=300
 
     setListPerPage_300.short_description = u'每页显示300条'
 
     def setListPerPage_1000(self,request,queset):
-         admin.ModelAdmin.list_per_page=1000
+        admin.ModelAdmin.list_per_page=1000
+
 
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -256,27 +257,27 @@ class TRoundAdmin(admin.ModelAdmin):
         obj.save()
 
     def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
+        admin.ModelAdmin.list_per_page=30
 
     setListPerPage_30.short_description = u'每页显示30条'
 
     def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
+        admin.ModelAdmin.list_per_page=50
 
     setListPerPage_50.short_description = u'每页显示50条'
 
     def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
+        admin.ModelAdmin.list_per_page=100
 
     setListPerPage_100.short_description = u'每页显示100条'
 
     def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
+        admin.ModelAdmin.list_per_page=300
 
     setListPerPage_300.short_description = u'每页显示300条'
 
     def setListPerPage_1000(self,request,queset):
-         admin.ModelAdmin.list_per_page=1000
+        admin.ModelAdmin.list_per_page=1000
 
     setListPerPage_1000.short_description = u'每页显示1000条'
 
