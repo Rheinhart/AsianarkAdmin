@@ -42,7 +42,7 @@ INSTALLED_APPS = (
     'AsianarkAdmin.userinfo',
     'AsianarkAdmin.baccarat_Controll',
     'AsianarkAdmin.serverinfo',
-    'debug_toolbar',
+    #'debug_toolbar',
 
 )
 
@@ -57,10 +57,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'AsianarkAdmin.admin_ip_whitelist.middleware.AdminAcceessIPWhiteListMiddleware'
+    #'AsianarkAdmin.admin_ip_whitelist.middleware.AdminAcceessIPWhiteListMiddleware'
 )
 
-ADMIN_ACCEES_WHITELIST_ENABLED = True
+ADMIN_ACCEES_WHITELIST_ENABLED = False
 
 ADMIN_ACCEES_WHITELIST_MESSAGE = 'Your ip address is not allowed!'
 
@@ -73,7 +73,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
+                #'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
