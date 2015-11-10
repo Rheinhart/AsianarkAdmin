@@ -50,6 +50,7 @@ class TBulletin(models.Model):
         verbose_name = u'公告信息'
         verbose_name_plural = u'公告信息'
 
+
 class TVideo(models.Model):
 
     FLAG = ((0,u'启用'),(1,u'禁用'),)

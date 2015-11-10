@@ -142,6 +142,7 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
     list_display = ('limitid','playtype','min_cents','max_cents','flag')
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
     list_filter = ('limitid','playtype','min_cents','max_cents','flag')
+    list_editable=('limitid','playtype','min_cents','max_cents','flag')
 
 
 @admin.register(TOrders)
