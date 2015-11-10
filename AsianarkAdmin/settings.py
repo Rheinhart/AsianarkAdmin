@@ -31,7 +31,7 @@ ADMIN = (('Thomas', 'thomas_lee@outlook.de'), ) # send email to the address when
 # Application definition
 
 INSTALLED_APPS = (
-    'AsianarkAdmin.bootstrap_admin',
+    'AsianarkAdmin.suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,8 +42,7 @@ INSTALLED_APPS = (
     'AsianarkAdmin.userinfo',
     'AsianarkAdmin.baccarat_Controll',
     'AsianarkAdmin.serverinfo',
-
-    #'debug_toolbar',
+    'debug_toolbar',
 
 )
 
@@ -153,7 +152,7 @@ TIMEOUT = None   #cache time out!
 GAME_SERVER = {
     'dafault':{
         'URL':'127.0.0.1',
-        'PORT':'2014',
+        'PORT':'2012',
         'NAME':'bjl_Game_Ser'
     }
 }
