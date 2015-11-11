@@ -180,48 +180,6 @@ class TOrdersAdmin(admin.ModelAdmin):
                 request._set_post(post)
         return super(TOrdersAdmin, self).changelist_view(request, extra_context)
 
-    def recalcRound(self, request, queryset):
-        head = u"重新结算局"
-        command = 50016
-        try:
-            if len(queryset) == 1:
-                roundcode = queryset[0].roundcode
-            else:
-                message = u'只能选择一局结算'
-                self.message_user(request, "%s: %s" %(head,message))
-                raise Exception
-            response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
-            if response.content == '60016':
-                message = u'结算成功'
-            else:
-                message = u'结算失败'
-            self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-        except Exception, e:
-            message = u'发送指令出错'
-            self.message_user(request, "%s: %s" %(head,message))
-    recalcRound.short_description = u'重新结算局'
-
-    def cancelRound(self, request, queryset):
-        head = u"取消局注单结算"
-        command = 50017
-        try:
-            if len(queryset) == 1:
-                roundcode = queryset[0].roundcode
-            else:
-                message = u'只能取消一局'
-                self.message_user(request, "%s: %s" %(head,message))
-                raise Exception
-            response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
-            if response.content == '60017':
-                message = u'取消成功'
-            else:
-                message = u'取消失败'
-            self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-        except Exception, e:
-            message = u'发送指令出错'
-            self.message_user(request, "%s:%s" %(head,message))
-    cancelRound.short_description = u'取消局注单结算'
-
 
     list_display = ('billno','roundcode','loginname','agentcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
                     'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','mycreate_time',
@@ -247,18 +205,66 @@ class TOrdersAdmin(admin.ModelAdmin):
         del actions['delete_selected']
         return actions
 
-    actions = [recalcRound,cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
 
 @admin.register(TRounds)
 class TRoundAdmin(admin.ModelAdmin):
+    """游戏局记录管理
+    """
+    list_display = ('roundcode','gametype','flag','videoid','dealer','cards','cardnum','pair','bankerpoint','playerpoint','mybegintime','myclosetime','shoecode')
+    search_fields = ('roundcode','gametype','flag','dealer','cards','shoecode')
+    list_filter = ('gametype','dealer','videoid','flag','cards','begintime','closetime')
+    ordering = ('-roundcode',)
+    readonly_fields = ('roundcode','gametype','flag','videoid','dealer','cards','cardnum','pair','bankerpoint','playerpoint','begintime','closetime','shoecode',)
 
-    list_display = ('roundcode','gametype','videoid','dealer','cards','begintime','closetime','shoecode')
-    search_fields = ('roundcode','gametype','dealer','cards','shoecode')
-    list_filter = ('gametype','dealer','videoid','cards','begintime','closetime')
-    ordering = ('roundcode',)
-    readonly_fields = ('roundcode','gametype','videoid','dealer','cards','begintime','closetime','shoecode',)
+    def recalcRound(self, request, queryset):
+        head = u"重新结算局"
+        command = 50016
+        try:
+            if len(queryset) == 1:
+                roundcode = queryset[0].roundcode
+                flag = queryset[0].flag
+                if flag == 0:
+                    response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
+                    if response.content == '60016':
+                        message = u'结算成功'
+                    else:
+                         message = u'结算失败'
+                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+                else:
+                    message = u'已经结算过'
+                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+            else:
+                message = u'只能选择一局结算'
+                self.message_user(request, "%s: %s" %(head,message))
+        except Exception, e:
+            message = u'发送指令出错'
+            self.message_user(request, "%s: %s" %(head,message))
+    recalcRound.short_description = u'重新结算局'
+
+    def cancelRound(self, request, queryset):
+        head = u"取消局注单结算"
+        command = 50017
+        try:
+            if len(queryset) == 1:
+                roundcode = queryset[0].roundcode
+                flag = queryset[0].flag
+                if flag == 0:
+                    response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
+                    if response.content == '60017':
+                        message = u'取消成功'
+                    else:
+                        message = u'取消失败'
+                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+            else:
+                message = u'只能取消一局'
+                self.message_user(request, "%s: %s" %(head,message))
+        except Exception, e:
+            message = u'发送指令出错'
+            self.message_user(request, "%s:%s" %(head,message))
+    cancelRound.short_description = u'取消局注单结算'
 
     def has_add_permission(self, request,obj=None):
         return False
@@ -310,7 +316,7 @@ class TRoundAdmin(admin.ModelAdmin):
                 request._set_post(post)
         return super(TRoundAdmin, self).changelist_view(request, extra_context)
 
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+    actions = [recalcRound,cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
 

@@ -206,6 +206,7 @@ class TOrders(models.Model):
 class TRounds(models.Model):
 
     FLAG = ((0,u'未结算'),(1,u'已结算'),)
+    PAIR =((0,u'无对'),(1,u'庄对'),(2,u'闲对'),(4,u'庄闲对'))
 
     roundcode = models.CharField(primary_key=True, max_length=16,verbose_name=u'游戏局号')
     gametype = models.CharField(max_length=4,verbose_name= u'游戏类型')
@@ -213,10 +214,10 @@ class TRounds(models.Model):
     dealer = models.CharField(blank=True, null=True , max_length=16,verbose_name= u'荷官')
     flag = models.IntegerField(db_column= u'Flag',verbose_name= u'结算标志',choices=FLAG,default=0)
     cards = models.CharField(max_length=24, blank=True, null=True,verbose_name=u'牌值列表')
-    cardnum = models.IntegerField(blank=True, null=True,validators=[MinValueValidator(0), MaxValueValidator(9999)])
-    pair = models.IntegerField(blank=True,null=True,validators=[MinValueValidator(0), MaxValueValidator(9999)])
-    bankerpoint = models.IntegerField(blank=True, null=True,validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'庄点数')
-    playerpoint = models.IntegerField(blank=True, null=True,validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'闲点数')
+    cardnum = models.IntegerField(blank=True, null=True,verbose_name=u'牌张数',validators=[MinValueValidator(0), MaxValueValidator(9999)])
+    pair = models.IntegerField(blank=True,null=True,choices=PAIR,verbose_name=u'庄闲对',validators=[MinValueValidator(0), MaxValueValidator(9999)])
+    bankerpoint = models.IntegerField(blank=True, null=True,validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'庄家点数')
+    playerpoint = models.IntegerField(blank=True, null=True,validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'闲家点数')
     begintime = models.DateTimeField(verbose_name= u'开始时间',default=datetime.datetime.now)
     closetime = models.DateTimeField(blank=True, null=True,verbose_name= u'结束时间')
     shoecode = models.CharField(max_length=16,verbose_name='靴号')
@@ -225,7 +226,7 @@ class TRounds(models.Model):
         if not self.begintime:
             return self.begintime
         else:
-            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
+            return self.begintime.strftime('%Y-%m-%d %H:%M:%S')
     mybegintime.short_description = u'开始时间'
 
     def myclosetime(self):
