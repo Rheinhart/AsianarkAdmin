@@ -48,22 +48,18 @@ class TBulletinAdmin(admin.ModelAdmin):
 
     def setListPerPage_30(self,request,queryset):
         admin.ModelAdmin.list_per_page=30
-
     setListPerPage_30.short_description = u'每页显示30条'
 
     def setListPerPage_50(self,request,queryset):
         admin.ModelAdmin.list_per_page=50
-
     setListPerPage_50.short_description = u'每页显示50条'
 
     def setListPerPage_100(self,request,queryset):
         admin.ModelAdmin.list_per_page=100
-
     setListPerPage_100.short_description = u'每页显示100条'
 
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
-
     setListPerPage_300.short_description = u'每页显示300条'
 
     def setListPerPage_1000(self,request,queset):
@@ -83,7 +79,6 @@ class TBulletinAdmin(admin.ModelAdmin):
         return super(TBulletinAdmin, self).changelist_view(request, extra_context)
 
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
 
 
 @receiver(post_save, sender=TBulletin)
@@ -186,23 +181,46 @@ class TOrdersAdmin(admin.ModelAdmin):
         return super(TOrdersAdmin, self).changelist_view(request, extra_context)
 
     def recalcRound(self, request, queryset):
-
-        message = u"重新结算注单"
-        self.message_user(request, "%s" % message)
+        head = u"重新结算局"
         command = 50016
         try:
-            response=requests.get('http://%s:%s/order?command=%s?videoid=%s?roundcode=%s'%(url,port,command,'T01','001'))
-            print response
+            if len(queryset) == 1:
+                roundcode = queryset[0].roundcode
+            else:
+                message = u'只能选择一局结算'
+                self.message_user(request, "%s: %s" %(head,message))
+                raise Exception
+            response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
+            if response.content == '60016':
+                message = u'结算成功'
+            else:
+                message = u'结算失败'
+            self.message_user(request, "%s: %s%s" %(head,roundcode,message))
         except Exception, e:
-            message = u'Cannot send recalcRound to the Game Server'
-            self.message_user(request, "%s" % message)
-            print message
+            message = u'发送指令出错'
+            self.message_user(request, "%s: %s" %(head,message))
+    recalcRound.short_description = u'重新结算局'
 
-    recalcRound.short_description = u'重新结算局注单'
-
-    def cancelOrder(self, request, queryset):
-        pass
-    cancelOrder.short_description = u'取消结算局注单'
+    def cancelRound(self, request, queryset):
+        head = u"取消局注单结算"
+        command = 50017
+        try:
+            if len(queryset) == 1:
+                roundcode = queryset[0].roundcode
+            else:
+                message = u'只能取消一局'
+                self.message_user(request, "%s: %s" %(head,message))
+                raise Exception
+            response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
+            if response.content == '60017':
+                message = u'取消成功'
+            else:
+                message = u'取消失败'
+            self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+        except Exception, e:
+            message = u'发送指令出错'
+            self.message_user(request, "%s:%s" %(head,message))
+    cancelRound.short_description = u'取消局注单结算'
 
 
     list_display = ('billno','roundcode','loginname','agentcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
@@ -229,7 +247,7 @@ class TOrdersAdmin(admin.ModelAdmin):
         del actions['delete_selected']
         return actions
 
-    actions = [recalcRound,cancelOrder,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+    actions = [recalcRound,cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
 
@@ -301,8 +319,60 @@ class TRecalcRoundsAdmin(admin.ModelAdmin):
     list_display = ('actionid','action','mycreate_time','roundcode')
     search_fields = ('actionid','create_time','action','roundcode')
     list_filter = ('actionid','action','create_time','roundcode')
-    ordering = ('-roundcode','-create_time')
-    #readonly_fields = ('actionid','action','mycreate_time','roundcode')
+    ordering = ('-actionid',)
+    readonly_fields = ('actionid','action','create_time','roundcode')
+
+    def has_add_permission(self, request,obj=None):
+        return False
+
+    def has_delete_permission(self,request,obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super(TRecalcRoundsAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def save_model(self, request, obj, form, change):
+        obj.save()
+
+    def setListPerPage_30(self,request,queryset):
+        admin.ModelAdmin.list_per_page=30
+
+    setListPerPage_30.short_description = u'每页显示30条'
+
+    def setListPerPage_50(self,request,queryset):
+        admin.ModelAdmin.list_per_page=50
+
+    setListPerPage_50.short_description = u'每页显示50条'
+
+    def setListPerPage_100(self,request,queryset):
+        admin.ModelAdmin.list_per_page=100
+
+    setListPerPage_100.short_description = u'每页显示100条'
+
+    def setListPerPage_300(self,request,queryset):
+        admin.ModelAdmin.list_per_page=300
+
+    setListPerPage_300.short_description = u'每页显示300条'
+
+    def setListPerPage_1000(self,request,queset):
+        admin.ModelAdmin.list_per_page=1000
+
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
+    def changelist_view(self, request, extra_context=None):
+        """不选择object的前提下执行action
+        """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TRecalcRounds.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.actionid)})
+                request._set_post(post)
+        return super(TRecalcRoundsAdmin, self).changelist_view(request, extra_context)
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
 

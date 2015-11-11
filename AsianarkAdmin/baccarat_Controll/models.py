@@ -241,8 +241,8 @@ class TRounds(models.Model):
     class Meta:
         managed = False
         db_table = 't_rounds'
-        verbose_name =  u'游戏局信息'
-        verbose_name_plural =  u'游戏局信息'
+        verbose_name =  u'游戏局记录'
+        verbose_name_plural =  u'游戏局记录'
 
 
 class TRecalcRounds(models.Model):
