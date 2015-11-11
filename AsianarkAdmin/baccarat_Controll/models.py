@@ -21,7 +21,7 @@ class TBulletin(models.Model):
     FLAG = ((0,u'启用'),(1,u'禁用'),)
     tomorrow = datetime.datetime.now()+datetime.timedelta(days = 1)
 
-    bulletinid = models.AutoField(verbose_name= u'公告id',max_length=11,primary_key=True)
+    bulletinid = models.AutoField(verbose_name= u'公告ID',max_length=11,primary_key=True)
     create_time = models.DateTimeField(verbose_name= u'创建时间',default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     expired_time = models.DateTimeField(verbose_name= u'到期时间',default=tomorrow) #多一天
     text = models.TextField(max_length=200,verbose_name= u'公告内容')
@@ -84,7 +84,7 @@ class TTableLimitset(models.Model):
     FLAG = ((0,u'启用'),(1,u'禁用'),)
 
     id = models.AutoField(primary_key=True)
-    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',max_length=4)
+    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红ID',max_length=4)
     playtype = models.IntegerField(db_column='PlayType',verbose_name= u'玩法',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     min_cents = models.IntegerField(db_column='Min_Cents',verbose_name= u'最小下注额度',default=0)
     max_cents = models.IntegerField(db_column='Max_Cents',verbose_name= u'最大下注额度',default=100)
@@ -107,10 +107,10 @@ class TTable(models.Model):
     GAMETYPE = (('BJL',u'百家乐'),('DDZ',u'斗地主'))
     LIMITID=(('A','A'),('B','B'),('C','C'),('D','D'))
 
-    tableid = models.CharField(db_column='TableID',verbose_name= u'桌台id', primary_key=True, max_length=16)
-    videoid = models.ForeignKey(TVideo,db_column= 'VideoID',verbose_name=u'视频id',help_text=u'不要在这里执行删除操作,最好也不要在这里添加视频')
-    gametype = models.CharField(db_column='GameType',verbose_name= u'玩法',choices=GAMETYPE,default='BJL',max_length=16)
-    limitid = models.CharField(db_column='LimitID',choices=LIMITID,verbose_name= u'限红id',help_text=u'请与桌台限红表中数据保持一致',max_length=4)
+    tableid = models.CharField(db_column='TableID',verbose_name= u'桌台ID', primary_key=True, max_length=16)
+    videoid = models.ForeignKey(TVideo,db_column= 'VideoID',verbose_name=u'视频ID',help_text=u'不要在这里执行删除操作,最好也不要在这里添加视频')
+    gametype = models.CharField(db_column='GameType',verbose_name= u'游戏类型',choices=GAMETYPE,default='BJL',max_length=16)
+    limitid = models.CharField(db_column='LimitID',choices=LIMITID,verbose_name= u'限红ID',help_text=u'请与桌台限红表中数据保持一致',max_length=4)
     seats = models.IntegerField(db_column='Seats',validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'座位数',default=7)
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
 
@@ -137,7 +137,7 @@ class TPersonalLimitset(models.Model):
     FLAG = ((0,u'启用'),(1,u'禁用'),)
 
     id = models.AutoField(primary_key=True)
-    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红id',max_length=11)
+    limitid = models.CharField(db_column='LimitID',verbose_name= u'限红ID',max_length=11)
     playtype = models.IntegerField(db_column='PlayType',verbose_name= u'玩法',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     min_cents = models.IntegerField(db_column='Min_Cents', verbose_name= u'最小下注额度',default=0)
     max_cents = models.IntegerField(db_column='Max_Cents', verbose_name= u'最大下注额度',default=100)
@@ -157,12 +157,13 @@ class TPersonalLimitset(models.Model):
 class TOrders(models.Model):
 
     FLAG = ((0,u'未结算'),(1,u'正常结算'),(8,u'重新派彩'),(-1,u'取消结算'))
+    GAMETYPE = (('BJL',u'百家乐'),('DDZ',u'斗地主'))
 
     billno = models.IntegerField(primary_key=True,verbose_name=u'注单号')
-    gametype = models.CharField(max_length=16,verbose_name=u'游戏类型')
+    gametype = models.CharField(max_length=16,verbose_name=u'游戏类型',choices=GAMETYPE)
     loginname = models.CharField(max_length=32,verbose_name=u'用户名')
     agentcode = models.IntegerField(db_column='AgentCode',verbose_name=u'代理CODE')
-    roundcode = models.CharField(max_length=16,verbose_name=u'游戏局id')
+    roundcode = models.CharField(max_length=16,verbose_name=u'游戏局ID')
     videoid = models.ForeignKey(TVideo,db_column='videoid',max_length=4,verbose_name= u'视频ID',default='')
     tableid = models.ForeignKey(TTable,db_column='tableid',max_length=4,verbose_name= u'桌台ID',default='')
     seat = models.IntegerField(verbose_name=u'位置',validators=[MinValueValidator(0), MaxValueValidator(9999)])
@@ -207,10 +208,11 @@ class TRounds(models.Model):
 
     FLAG = ((0,u'未结算'),(1,u'已结算'),)
     PAIR =((0,u'无对'),(1,u'庄对'),(2,u'闲对'),(4,u'庄闲对'))
+    GAMETYPE = (('BJL',u'百家乐'),('DDZ',u'斗地主'))
 
     roundcode = models.CharField(primary_key=True, max_length=16,verbose_name=u'游戏局号')
-    gametype = models.CharField(max_length=4,verbose_name= u'游戏类型')
-    videoid = models.ForeignKey(TVideo,db_column='videoid',max_length=4,verbose_name= u'视频id')
+    gametype = models.CharField(max_length=4,verbose_name= u'游戏类型',choices=GAMETYPE)
+    videoid = models.ForeignKey(TVideo,db_column='videoid',max_length=4,verbose_name= u'视频ID')
     dealer = models.CharField(blank=True, null=True , max_length=16,verbose_name= u'荷官')
     flag = models.IntegerField(db_column= u'Flag',verbose_name= u'结算标志',choices=FLAG,default=0)
     cards = models.CharField(max_length=24, blank=True, null=True,verbose_name=u'牌值列表')
@@ -248,7 +250,7 @@ class TRounds(models.Model):
 
 class TRecalcRounds(models.Model):
 
-    actionid = models.IntegerField(primary_key=True,verbose_name=u'操作id')
+    actionid = models.IntegerField(primary_key=True,verbose_name=u'操作ID')
     create_time = models.DateTimeField(db_column='Create_time',verbose_name= u'创建时间',default=datetime.datetime.now)
     action = models.CharField(max_length=64,verbose_name=u'操作')
     roundcode = models.CharField(max_length=16,verbose_name=u'游戏局号')

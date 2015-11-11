@@ -1,0 +1,11 @@
+package protofile.controller.modifyVideo;
+
+message modifyVideoRequest{
+    required string videoId = 1;
+    required string betTime= 2;
+    required string url = 3;
+}
+
+message modifyVideoResponse{
+    required uint32 code=1;
+}

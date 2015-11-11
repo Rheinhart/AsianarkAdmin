@@ -4,7 +4,9 @@
 """
 from django.contrib import admin
 from django import forms
-from AsianarkAdmin.tools.protobuff import login_pb2,tableLimit_pb2,bulletin_pb2
+from AsianarkAdmin.tools.protobuff import login_pb2,bulletin_pb2
+from AsianarkAdmin.tools.protobuff.baccarat import modifyTableLimit_pb2,modifyPersonalLimit_pb2
+
 import requests
 from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
@@ -104,7 +106,6 @@ def pushBulletinToGameSer(sender,instance,**argvs):
         return HttpResponseRedirect("/admin")
 
 
-
 @admin.register(TTableLimitset)
 class TTableLimitsetAdmin(admin.ModelAdmin):
 
@@ -112,24 +113,19 @@ class TTableLimitsetAdmin(admin.ModelAdmin):
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
     list_filter = ('limitid','playtype','min_cents','max_cents','flag')
 
-
 @receiver(post_save, sender=TTableLimitset)
 def pushTableLimitToGameSer(instance,**argvs):
-    """push TableLimit message to the gameserver after which saved into the database
-    """
-    mytableLimit = tableLimit_pb2.tableLimit()
-    mytableLimit.limitid = instance.limitid
-    mytableLimit.playtype = instance.playtype
-    mytableLimit.minval = instance.min_cents
-    mytableLimit.maxval = instance.max_cents
 
+    command = 50009
+    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid}
     try:
-        reponse=requests.post('%s:%s'%(url,port),mytableLimit.SerializeToString())
+        response=requests.get('http://%s:%s/tablelimit?command=%s'%(url,port,command),data)
+        if response.content == '60009':
+            print response.content
     except Exception, e:
-            response = HttpResponseRedirect("/admin/baccarat_Controll/ttablelimitset")
-            print 'Cannot send TableLimit to the Game Server.'
-            return response
-
+            response = HttpResponseRedirect("/admin/baccarat_Controll/tablelimitset")
+            print 'Cannot send TTableLimitset to the Game Server.'
+    return response.content
 
 @admin.register(TPersonalLimitset)
 class TPersonalLimitsetAdmin(admin.ModelAdmin):
@@ -138,6 +134,21 @@ class TPersonalLimitsetAdmin(admin.ModelAdmin):
     search_fields = ('limitid','playtype','min_cents','max_cents','flag')
     list_filter = ('limitid','playtype','min_cents','max_cents','flag')
     #list_editable=('limitid','playtype','min_cents','max_cents','flag')
+
+@receiver(post_save, sender=TPersonalLimitset)
+def pushPersonalLimitToGameSer(instance,**argvs):
+    """push TPersonalLimit message to the gameserver after which saved into the database
+    """
+    command = 50011
+    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid}
+    try:
+        response=requests.get('http://%s:%s/personallimit?command=%s'%(url,port,command),data)
+        if response.content == '60011':
+            print response.content
+    except Exception, e:
+            response = HttpResponseRedirect("/admin/baccarat_Controll/tpersonallimitset")
+            print 'Cannot send PersonalLimitset to the Game Server.'
+    return response.content
 
 
 @admin.register(TOrders)
@@ -206,7 +217,6 @@ class TOrdersAdmin(admin.ModelAdmin):
         return actions
 
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
 
 
 @admin.register(TRounds)
@@ -322,7 +332,6 @@ class TRoundAdmin(admin.ModelAdmin):
     actions = [recalcRound,cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
-
 @admin.register(TRecalcRounds)
 class TRecalcRoundsAdmin(admin.ModelAdmin):
     list_display = ('actionid','action','mycreate_time','roundcode')
@@ -382,7 +391,6 @@ class TRecalcRoundsAdmin(admin.ModelAdmin):
         return super(TRecalcRoundsAdmin, self).changelist_view(request, extra_context)
 
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
 
 
 @admin.register(TVideo)
