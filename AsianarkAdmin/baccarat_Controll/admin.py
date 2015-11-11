@@ -227,7 +227,7 @@ class TRoundAdmin(admin.ModelAdmin):
                 roundcode = queryset[0].roundcode
                 flag = queryset[0].flag
                 if flag == 0:
-                    response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
+                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
                     if response.content == '60016':
                         message = u'结算成功'
                     else:
@@ -252,7 +252,7 @@ class TRoundAdmin(admin.ModelAdmin):
                 roundcode = queryset[0].roundcode
                 flag = queryset[0].flag
                 if flag == 0:
-                    response=requests.get('http://%s:%s/order?command=%s&roundcode=%s'%(url,port,command,roundcode))
+                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
                     if response.content == '60017':
                         message = u'取消成功'
                     else:
