@@ -21,20 +21,20 @@ port = GAME_SERVER['dafault'].get('PORT')
 
 @receiver(user_logged_in)
 def pushLoginMessageToGameSer(**kwargs):
-        """push message to the gameserver when login
+    """push message to the gameserver when login
            code: 0x00050002
-        """
-        #login = login_pb2.loginResultResponse()
-        #login.code = 0x00050002
-        #login.token = '123456'
-        #login.flag = 2
-        try:
-            requests.get('http//%s:%s/clogin'%(url,port))
-
-        except Exception,e:
+    """
+    command = 50001
+    data = {'controller':kwargs['user']}
+    try:
+        response=requests.get('http://%s:%s/controller?command=%s'%(url,port,command),data)
+        if response.content == '60001':
+            print 'Game Server received.'
+    except Exception, e:
             print "Cannot send message to Game Server"
             response = HttpResponseRedirect("/admin")
             return response
+
 
 @admin.register(TBulletin)
 class TBulletinAdmin(admin.ModelAdmin):
