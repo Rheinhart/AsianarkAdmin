@@ -234,7 +234,7 @@ class TRoundAdmin(admin.ModelAdmin):
                          message = u'结算失败'
                     self.message_user(request, "%s: %s%s" %(head,roundcode,message))
                 else:
-                    message = u'已经结算过'
+                    message = u'已经结算过,无法重新结算'
                     self.message_user(request, "%s: %s%s" %(head,roundcode,message))
             else:
                 message = u'只能选择一局结算'
@@ -257,6 +257,9 @@ class TRoundAdmin(admin.ModelAdmin):
                         message = u'取消成功'
                     else:
                         message = u'取消失败'
+                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+                else:
+                    message = u'已经结算过,无法取消'
                     self.message_user(request, "%s: %s%s" %(head,roundcode,message))
             else:
                 message = u'只能取消一局'
