@@ -99,7 +99,6 @@ DATABASES = {
         'USER': 'web',                      # Not used with sqlite3.
         'PASSWORD': 'web.ak',                  # Not used with sqlite3.
         'HOST': '202.77.29.210',                      # Set to empty string for localhost. Not used with sqlite3.
-        #'HOST':'127.0.0.1',
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
     }
 }

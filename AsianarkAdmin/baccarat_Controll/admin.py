@@ -22,7 +22,7 @@ port = GAME_SERVER['dafault'].get('PORT')
 @receiver(user_logged_in)
 def pushLoginMessageToGameSer(**kwargs):
     """push message to the gameserver when login
-           code: 0x00050002
+       code: 0x00050002
     """
     command = 50001
     data = {'controller':kwargs['user']}
@@ -117,11 +117,11 @@ class TTableLimitsetAdmin(admin.ModelAdmin):
 def pushTableLimitToGameSer(instance,**argvs):
 
     command = 50009
-    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid}
+    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid,'flag':instance.flag}
     try:
         response=requests.get('http://%s:%s/tablelimit?command=%s'%(url,port,command),data)
         if response.content == '60009':
-            print response.content
+            print 'Send message to the Game Server successfully.'
     except Exception, e:
             response = HttpResponseRedirect("/admin/baccarat_Controll/tablelimitset")
             print 'Cannot send TTableLimitset to the Game Server.'
@@ -140,11 +140,11 @@ def pushPersonalLimitToGameSer(instance,**argvs):
     """push TPersonalLimit message to the gameserver after which saved into the database
     """
     command = 50011
-    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid}
+    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid,'flag':instance.flag}
     try:
         response=requests.get('http://%s:%s/personallimit?command=%s'%(url,port,command),data)
         if response.content == '60011':
-            print response.content
+            print 'Send message to the Game Server successfully.'
     except Exception, e:
             response = HttpResponseRedirect("/admin/baccarat_Controll/tpersonallimitset")
             print 'Cannot send PersonalLimitset to the Game Server.'
@@ -334,6 +334,8 @@ class TRoundAdmin(admin.ModelAdmin):
 
 @admin.register(TRecalcRounds)
 class TRecalcRoundsAdmin(admin.ModelAdmin):
+    """重新结算游戏局记录
+    """
     list_display = ('actionid','action','mycreate_time','roundcode')
     search_fields = ('actionid','create_time','action','roundcode')
     list_filter = ('actionid','action','create_time','roundcode')
