@@ -42,7 +42,7 @@ class TBulletinAdmin(admin.ModelAdmin):
     list_display = ('bulletinid','text','mycreate_time','myexpired_time')
     search_fields = ('bulletinid','text')
     list_filter = ('create_time','expired_time')
-    ordering = ('-create_time','bulletinid')
+    ordering = ('-bulletinid',)
     readonly_fields = ('create_time','flag')
 
     def save_model(self, request, obj, form, change):
@@ -126,6 +126,7 @@ def pushTableLimitToGameSer(instance,**argvs):
             response = HttpResponseRedirect("/admin/baccarat_Controll/tablelimitset")
             print 'Cannot send TTableLimitset to the Game Server.'
     return response.content
+
 
 @admin.register(TPersonalLimitset)
 class TPersonalLimitsetAdmin(admin.ModelAdmin):
@@ -417,6 +418,17 @@ class TVideoAdmin(admin.ModelAdmin):
             return ['videoid']
         else:
             return []
+    def pushVideoInfoFromGameSer(**kwargs):
+        command = 50002
+        data = {}
+        try:
+            response=requests.get('%s:%s/video?command=%s'%(url,port,command),data)
+            if response.content == '60002':
+                print 'Send video info to the Game Server successfully.'
+        except Exception, e:
+            response = HttpResponseRedirect("/admin")
+            print 'Cannot send video info to the Game Server.'
+            return response
 
     def setListPerPage_30(self,request,queryset):
          admin.ModelAdmin.list_per_page=30
@@ -454,7 +466,7 @@ class TVideoAdmin(admin.ModelAdmin):
                     post.update({admin.ACTION_CHECKBOX_NAME: str(u.videoid)})
                 request._set_post(post)
 
-        memopr.syncVideoMemAndDb()
+        memopr.syncVideoMemAndDb() #此时同步缓存数据库
         return super(TVideoAdmin, self).changelist_view(request, extra_context)
 
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
@@ -463,10 +475,23 @@ class TVideoAdmin(admin.ModelAdmin):
         if change: #change
             #obj_old = self.model.objects.get(pk=obj.pk)
             print 'change'
-            obj.change_video()
+            obj.change_video() #直接修改缓存
         else: #add
             print 'add'
-            obj.save()
+            obj.save() #先保存到数据库
+
+@receiver(post_save, sender=TVideo)
+def pushVideoInfoFromGameSer(**kwargs):
+    command = 50002
+    data = {}
+    try:
+        response=requests.get('%s:%s/video?command=%s'%(url,port,command),data)
+        if response.content == '60002':
+            print 'Send video info to the Game Server successfully.'
+    except Exception, e:
+        response = HttpResponseRedirect("/admin")
+        print 'Cannot send video info to the Game Server.'
+        return response
 
 
 @admin.register(TTable)
@@ -534,12 +559,3 @@ class TTableAdmin(admin.ModelAdmin):
         else: #add,在添加页面
             print 'add'
             obj.save()
-
-
-#def getVideoInfoFromGameSer(**kwargs):
-#    command = 50002
-#    try:
-#        requests.get('%s:%s/video?command=%s'%(url,port,command))
-#    except Exception, e:
-#        response = HttpResponseRedirect("/admin")
-#        return response

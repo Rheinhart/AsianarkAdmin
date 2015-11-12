@@ -56,7 +56,7 @@ class TVideo(models.Model):
     FLAG = ((0,u'启用'),(1,u'禁用'),)
     GAMETYPE = (('BJL',u'百家乐'),('DDZ',u'斗地主'))
 
-    videoid = models.CharField(db_column='VideoID', verbose_name= u'视频ID',primary_key=True, max_length=4,help_text=u'不要在删除桌台id前删除相应视频id')
+    videoid = models.CharField(db_column='VideoID', verbose_name= u'视频ID',primary_key=True, max_length=16,help_text=u'不要在删除桌台id前删除相应视频id')
     gametype = models.CharField(db_column='GameType', verbose_name= u'游戏类型', max_length=16,choices=GAMETYPE,default='BJL')
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
     bettime = models.IntegerField(db_column='BetTime',verbose_name= u'下注倒计时(秒)')
@@ -164,8 +164,8 @@ class TOrders(models.Model):
     loginname = models.CharField(max_length=32,verbose_name=u'用户名')
     agentcode = models.IntegerField(db_column='AgentCode',verbose_name=u'代理CODE')
     roundcode = models.CharField(max_length=16,verbose_name=u'游戏局ID')
-    videoid = models.ForeignKey(TVideo,db_column='videoid',max_length=4,verbose_name= u'视频ID',default='')
-    tableid = models.ForeignKey(TTable,db_column='tableid',max_length=4,verbose_name= u'桌台ID',default='')
+    videoid = models.CharField(db_column='videoid',max_length=16,verbose_name= u'视频ID',default='')
+    tableid = models.CharField(db_column='tableid',max_length=16,verbose_name= u'桌台ID',default='')
     seat = models.IntegerField(verbose_name=u'位置',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     dealer = models.CharField(max_length=16,verbose_name='荷官')
     flag = models.IntegerField(db_column='Flag',verbose_name= u'结算标志',choices=FLAG,default=0)
@@ -212,7 +212,7 @@ class TRounds(models.Model):
 
     roundcode = models.CharField(primary_key=True, max_length=16,verbose_name=u'游戏局号')
     gametype = models.CharField(max_length=4,verbose_name= u'游戏类型',choices=GAMETYPE)
-    videoid = models.ForeignKey(TVideo,db_column='videoid',max_length=4,verbose_name= u'视频ID')
+    videoid = models.CharField(db_column='videoid',max_length=16,verbose_name= u'视频ID')
     dealer = models.CharField(blank=True, null=True , max_length=16,verbose_name= u'荷官')
     flag = models.IntegerField(db_column= u'Flag',verbose_name= u'结算标志',choices=FLAG,default=0)
     cards = models.CharField(max_length=24, blank=True, null=True,verbose_name=u'牌值列表')
