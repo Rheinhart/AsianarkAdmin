@@ -60,7 +60,7 @@ class TVideo(models.Model):
     gametype = models.CharField(db_column='GameType', verbose_name= u'游戏类型', max_length=16,choices=GAMETYPE,default='BJL')
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
     bettime = models.IntegerField(db_column='BetTime',verbose_name= u'下注倒计时(秒)')
-    url = models.URLField(db_column='URL', max_length=160)
+    url = models.CharField(db_column='URL', max_length=160,verbose_name= u'URL')
 
     def change_video(self):
         mdata = {'videoid':self.videoid,'url':self.url,'flag':self.flag,'bettime':self.bettime,'gametype':self.gametype}
@@ -96,8 +96,8 @@ class TTableLimitset(models.Model):
     class Meta:
         managed = False
         db_table = 't_table_limitset'
-        verbose_name =  u'桌台限红'
-        verbose_name_plural =  u'桌台限红'
+        verbose_name =  u'桌台限红表'
+        verbose_name_plural =  u'桌台限红表'
 
 
 class TTable(models.Model):
@@ -150,8 +150,8 @@ class TPersonalLimitset(models.Model):
 
         managed = False
         db_table = 't_personal_limitset'
-        verbose_name =  u'个人限红'
-        verbose_name_plural =  u'个人限红'
+        verbose_name =  u'个人限红表'
+        verbose_name_plural =  u'个人限红表'
 
 
 class TOrders(models.Model):

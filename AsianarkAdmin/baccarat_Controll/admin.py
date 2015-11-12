@@ -10,8 +10,8 @@ from AsianarkAdmin.tools.protobuff.baccarat import modifyTableLimit_pb2,modifyPe
 import requests
 from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
-from django.http import HttpResponseRedirect
 from django.db.models.signals import post_save
+from django.http import HttpResponseRedirect
 from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TRecalcRounds,TVideo,TTable,TOrders
 from AsianarkAdmin.settings import GAME_SERVER
 from memopr import memopr
@@ -418,17 +418,6 @@ class TVideoAdmin(admin.ModelAdmin):
             return ['videoid']
         else:
             return []
-    def pushVideoInfoFromGameSer(**kwargs):
-        command = 50002
-        data = {}
-        try:
-            response=requests.get('%s:%s/video?command=%s'%(url,port,command),data)
-            if response.content == '60002':
-                print 'Send video info to the Game Server successfully.'
-        except Exception, e:
-            response = HttpResponseRedirect("/admin")
-            print 'Cannot send video info to the Game Server.'
-            return response
 
     def setListPerPage_30(self,request,queryset):
          admin.ModelAdmin.list_per_page=30
@@ -474,19 +463,18 @@ class TVideoAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if change: #change
             #obj_old = self.model.objects.get(pk=obj.pk)
-            print 'change'
             obj.change_video() #直接修改缓存
         else: #add
-            print 'add'
             obj.save() #先保存到数据库
 
 @receiver(post_save, sender=TVideo)
-def pushVideoInfoFromGameSer(**kwargs):
-    command = 50002
+def pushVideoInfoToGameSer(instance,**kwargs):
+    command = 50003
     data = {}
     try:
-        response=requests.get('%s:%s/video?command=%s'%(url,port,command),data)
-        if response.content == '60002':
+        response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
+        print '%s:%s/video?command=%s'%(url,port,command)
+        if response.content == '60003':
             print 'Send video info to the Game Server successfully.'
     except Exception, e:
         response = HttpResponseRedirect("/admin")
