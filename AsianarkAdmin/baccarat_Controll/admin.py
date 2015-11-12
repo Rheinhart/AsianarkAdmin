@@ -419,6 +419,18 @@ class TVideoAdmin(admin.ModelAdmin):
         else:
             return []
 
+    def pushVideoInfoToGameSer(self,command):
+        data = {}
+        try:
+            response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
+            print '%s:%s/video?command=%s'%(url,port,command)
+            if response.content == '60003':
+                print 'Send video info to the Game Server successfully.'
+        except Exception, e:
+            response = HttpResponseRedirect("/admin")
+            print 'Cannot send video info to the Game Server.'
+            return response
+
     def setListPerPage_30(self,request,queryset):
          admin.ModelAdmin.list_per_page=30
 
@@ -462,24 +474,26 @@ class TVideoAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if change: #change
-            #obj_old = self.model.objects.get(pk=obj.pk)
-            obj.change_video() #直接修改缓存
+            obj.changeVideoInMem() #直接修改缓存
+            self.pushVideoInfoToGameSer(50003)
         else: #add
             obj.save() #先保存到数据库
+            obj.changeVideoInMem()
+            self.pushVideoInfoToGameSer(50003)
 
-@receiver(post_save, sender=TVideo)
-def pushVideoInfoToGameSer(instance,**kwargs):
-    command = 50003
-    data = {}
-    try:
-        response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
-        print '%s:%s/video?command=%s'%(url,port,command)
-        if response.content == '60003':
-            print 'Send video info to the Game Server successfully.'
-    except Exception, e:
-        response = HttpResponseRedirect("/admin")
-        print 'Cannot send video info to the Game Server.'
-        return response
+# @receiver(post_save, sender=TVideo)
+# def pushVideoInfoToGameSer(instance,**kwargs):
+#     command = 50003
+#     data = {}
+#     try:
+#         response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
+#         print '%s:%s/video?command=%s'%(url,port,command)
+#         if response.content == '60003':
+#             print 'Send video info to the Game Server successfully.'
+#     except Exception, e:
+#         response = HttpResponseRedirect("/admin")
+#         print 'Cannot send video info to the Game Server.'
+#         return response
 
 
 @admin.register(TTable)
@@ -543,7 +557,8 @@ class TTableAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if change: #change,在修改页面
             print 'change'
-            obj.change_table()
+            obj.changeVideoInMem()
         else: #add,在添加页面
             print 'add'
             obj.save()
+            obj.changeVideoInMem()

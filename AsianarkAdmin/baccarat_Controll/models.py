@@ -62,12 +62,11 @@ class TVideo(models.Model):
     bettime = models.IntegerField(db_column='BetTime',verbose_name= u'下注倒计时(秒)')
     url = models.CharField(db_column='URL', max_length=160,verbose_name= u'URL')
 
-    def change_video(self):
+    def changeVideoInMem(self):
+        """更新视频到缓存
+        """
         mdata = {'videoid':self.videoid,'url':self.url,'flag':self.flag,'bettime':self.bettime,'gametype':self.gametype}
         memopr.changeVideoInMem(mdata)
-
-    def add_video(self):
-        pass
 
     def __unicode__(self):
         return self.videoid
@@ -114,13 +113,9 @@ class TTable(models.Model):
     seats = models.IntegerField(db_column='Seats',validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'座位数',default=7)
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
 
-    def change_table(self):
+    def changeVideoInMem(self):
         mdata = {'videoid':self.videoid.videoid,'tableid':self.tableid,'flag':self.flag,'seats':self.seats,'limitid':self.limitid}
         memopr.changeTableInMem(mdata)
-
-    def add_table(self):
-        pass
-        # memopr.refreshTableDbtoMem()
 
     def __unicode__(self):
         return self.tableid

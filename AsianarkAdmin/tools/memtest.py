@@ -11,7 +11,7 @@ from AsianarkAdmin.tools.fireflymem.madminanager import MAdminManager
 
 if __name__ == '__main__':
 
-    hostname = '183.91.54.138'
+    hostname = '202.77.29.210'
     user = 'web'
     password = 'web.ak'
     port = 3306
@@ -19,19 +19,24 @@ if __name__ == '__main__':
     charset = "utf8"
     dbpool.initPool(host = hostname, user = user, passwd = password,
                      port = port, db = dbname, charset = charset)
+
     address = ['127.0.0.1:11211']
     hostname = 'bjl'
     mclient.connect(address, hostname)
-    tb_video = MAdmin('t_video', 'videoid', fk="flag")
-    obj = tb_video.getAllPkByFk(0)
-    for id in obj:
-        print tb_video.getObjData(id)
-    print '*'*20
-    from AsianarkAdmin.baccarat_Controll.memopr import Memmode_Operation
+    tb_video_admin = MAdmin('t_video', 'videoid', fk="flag")
 
-    obj = tb_video.getAllPkByFk(0)
+    obj = tb_video_admin.getAllPkByFk(0)
     for id in obj:
-        print tb_video.getObjData(id)
+        print tb_video_admin.getObjData(id)
+    print '*'*20
+
+    # tb_table_admin = MAdmin('t_table', 'tableid', fk="flag")
+    #
+    # obj = tb_table_admin.getAllPkByFk(0)
+    # for id in obj:
+    #     print tb_table_admin.getObjData(id)
+    # print '*'*20
+
 
 
 
