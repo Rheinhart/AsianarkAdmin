@@ -93,6 +93,165 @@ def pushBulletinToGameSer(sender,instance,**argvs):
         return HttpResponseRedirect("/admin")
 
 
+@admin.register(TVideo)
+class TVideoAdmin(admin.ModelAdmin):
+
+    list_display = ('videoid','gametype','bettime','url','flag')
+    search_fields = ('videoid','gametype','bettime','url','flag')
+    list_filter = ('videoid','gametype','bettime','url','flag')
+    ordering = ('videoid',)
+    readonly_fields = ('videoid',)
+
+    def get_actions(self, request):
+        """只允许特定管理者有删除视频权限"""
+        actions = super(TVideoAdmin, self).get_actions(request)
+        if not request.user.is_superuser or request.user.username.upper() != 'ADMIN':
+            if 'delete_selected' in actions:
+                del actions['delete_selected']
+        return actions
+
+    def get_readonly_fields(self,request,obj=None):
+        if obj:
+            return ['videoid']
+        else:
+            return []
+
+    def pushVideoInfoToGameSer(self,request,obj,command):
+        """推送更新视频消息到游戏服务器
+        """
+        data = {'videoid':obj.videoid,'url':obj.url,'flag':obj.flag,'bettime':obj.bettime,'gametype':obj.gametype}
+        try:
+            response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
+            if response.content == '60003':
+                message = u'添加新视频通知服务器成功'
+                self.message_user(request, "%s" %(message))
+            elif response.content == '60004':
+                message = u'修改视频通知服务器成功'
+                self.message_user(request, "%s" %(message))
+        except Exception, e:
+            response = HttpResponseRedirect("/admin")
+            print 'Cannot send video info to the Game Server.'
+            return response
+
+
+    def changelist_view(self, request, extra_context=None):
+        """不选择object的前提下执行action
+        """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TVideo.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.videoid)})
+                request._set_post(post)
+
+        memopr.syncVideoMemAndDb() #此时同步缓存数据库
+        return super(TVideoAdmin, self).changelist_view(request, extra_context)
+
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+    setListPerPage_30.short_description = u'每页显示30条'
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+    setListPerPage_50.short_description = u'每页显示50条'
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+    setListPerPage_100.short_description = u'每页显示100条'
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+    setListPerPage_300.short_description = u'每页显示300条'
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+
+    def save_model(self, request, obj, form, change):
+        if change: #change
+            obj.changeVideoInMem() #直接修改缓存
+            self.pushVideoInfoToGameSer(request,obj,50004)
+        else: #add
+            obj.save() #先保存到数据库
+            obj.changeVideoInMem()# 修改缓存
+            self.pushVideoInfoToGameSer(request,obj,50003)
+
+
+@admin.register(TTable)
+class TTableAdmin(admin.ModelAdmin):
+
+    list_display = ('tableid','videoid','limitid','seats','flag')
+    search_fields = ('tableid','videoid','limitid','seats','flag')
+    ordering = ('tableid','seats','videoid')
+    list_filter = ('videoid','flag','limitid','seats')
+    readonly_fields = ('gametype',)
+
+    def get_actions(self, request):
+        """只允许特定管理者有删除桌台权限"""
+        actions = super(TTableAdmin, self).get_actions(request)
+        if not request.user.is_superuser or request.user.username.upper() != 'ADMIN':
+            if 'delete_selected' in actions:
+                del actions['delete_selected']
+        return actions
+
+    def pushTableInfoToGameSer(self,request,obj,command):
+        """推送更新桌台消息到游戏服务器
+        """
+        data = {'videoid':obj.videoid.videoid,'gametype':obj.gametype,'tableid':obj.tableid,'flag':obj.flag,'seats':obj.seats,'limitid':obj.limitid}
+        try:
+            response=requests.get('http://%s:%s/table?command=%s'%(url,port,command),data)
+            if response.content == '60006':
+                message = u'添加新桌台通知服务器成功'
+                self.message_user(request,message)
+            elif response.content == '60007':
+                message = u'修改桌台通知服务器成功'
+                self.message_user(request, "%s" %(message))
+
+        except Exception, e:
+            response = HttpResponseRedirect("/admin")
+            print 'Cannot send table info to the Game Server.'
+            return response
+
+    def changelist_view(self, request, extra_context=None):
+        """不选择object的前提下执行action
+        """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TTable.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.tableid)})
+                request._set_post(post)
+
+        memopr.syncVideoMemAndDb()
+        memopr.syncTableMemAndDb()
+        return super(TTableAdmin, self).changelist_view(request, extra_context)
+
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+    setListPerPage_30.short_description = u'每页显示30条'
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+    setListPerPage_50.short_description = u'每页显示50条'
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+    setListPerPage_100.short_description = u'每页显示100条'
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+    setListPerPage_300.short_description = u'每页显示300条'
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+
+    def save_model(self, request, obj, form, change):
+        if change: #change,在修改页面
+            obj.changeTableInMem()
+            self.pushTableInfoToGameSer(request,obj,50007)
+        else: #add,在添加页面
+            obj.save()
+            obj.changeTableInMem()
+            self.pushTableInfoToGameSer(request,obj,50006)
+
+
 @admin.register(TTableLimitset)
 class TTableLimitsetAdmin(admin.ModelAdmin):
 
@@ -346,162 +505,3 @@ class TRecalcRoundsAdmin(admin.ModelAdmin):
                     post.update({admin.ACTION_CHECKBOX_NAME: str(u.actionid)})
                 request._set_post(post)
         return super(TRecalcRoundsAdmin, self).changelist_view(request, extra_context)
-
-
-@admin.register(TVideo)
-class TVideoAdmin(admin.ModelAdmin):
-
-    list_display = ('videoid','gametype','bettime','url','flag')
-    search_fields = ('videoid','gametype','bettime','url','flag')
-    list_filter = ('videoid','gametype','bettime','url','flag')
-    ordering = ('videoid',)
-    readonly_fields = ('videoid',)
-
-    def get_actions(self, request):
-        """只允许特定管理者有删除视频权限"""
-        actions = super(TVideoAdmin, self).get_actions(request)
-        if not request.user.is_superuser or request.user.username.upper() != 'ADMIN':
-            if 'delete_selected' in actions:
-                del actions['delete_selected']
-        return actions
-
-    def get_readonly_fields(self,request,obj=None):
-        if obj:
-            return ['videoid']
-        else:
-            return []
-
-    def pushVideoInfoToGameSer(self,request,obj,command):
-        """推送更新视频消息到游戏服务器
-        """
-        data = {'videoid':obj.videoid,'url':obj.url,'flag':obj.flag,'bettime':obj.bettime,'gametype':obj.gametype}
-        try:
-            response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
-            if response.content == '60003':
-                message = u'添加新视频通知服务器成功'
-                self.message_user(request, "%s" %(message))
-            elif response.content == '60004':
-                message = u'修改视频通知服务器成功'
-                self.message_user(request, "%s" %(message))
-        except Exception, e:
-            response = HttpResponseRedirect("/admin")
-            print 'Cannot send video info to the Game Server.'
-            return response
-
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TVideo.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.videoid)})
-                request._set_post(post)
-
-        memopr.syncVideoMemAndDb() #此时同步缓存数据库
-        return super(TVideoAdmin, self).changelist_view(request, extra_context)
-
-    def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
-         admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def save_model(self, request, obj, form, change):
-        if change: #change
-            obj.changeVideoInMem() #直接修改缓存
-            self.pushVideoInfoToGameSer(request,obj,50004)
-        else: #add
-            obj.save() #先保存到数据库
-            obj.changeVideoInMem()# 修改缓存
-            self.pushVideoInfoToGameSer(request,obj,50003)
-
-
-@admin.register(TTable)
-class TTableAdmin(admin.ModelAdmin):
-
-    list_display = ('tableid','videoid','limitid','seats','flag')
-    search_fields = ('tableid','videoid','limitid','seats','flag')
-    ordering = ('tableid','seats','videoid')
-    list_filter = ('videoid','flag','limitid','seats')
-    readonly_fields = ('gametype',)
-
-    def get_actions(self, request):
-        """只允许特定管理者有删除桌台权限"""
-        actions = super(TTableAdmin, self).get_actions(request)
-        if not request.user.is_superuser or request.user.username.upper() != 'ADMIN':
-            if 'delete_selected' in actions:
-                del actions['delete_selected']
-        return actions
-
-    def pushTableInfoToGameSer(self,request,obj,command):
-        """推送更新桌台消息到游戏服务器
-        """
-        data = {'videoid':obj.videoid.videoid,'gametype':obj.gametype,'tableid':obj.tableid,'flag':obj.flag,'seats':obj.seats,'limitid':obj.limitid}
-        try:
-            response=requests.get('http://%s:%s/table?command=%s'%(url,port,command),data)
-            if response.content == '60006':
-                message = u'添加新桌台通知服务器成功'
-                self.message_user(request,message)
-            elif response.content == '60007':
-                message = u'修改桌台通知服务器成功'
-                self.message_user(request, "%s" %(message))
-
-        except Exception, e:
-            response = HttpResponseRedirect("/admin")
-            print 'Cannot send table info to the Game Server.'
-            return response
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TTable.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.tableid)})
-                request._set_post(post)
-
-        memopr.syncVideoMemAndDb()
-        memopr.syncTableMemAndDb()
-        return super(TTableAdmin, self).changelist_view(request, extra_context)
-
-    def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
-         admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def save_model(self, request, obj, form, change):
-        if change: #change,在修改页面
-            obj.changeTableInMem()
-            self.pushTableInfoToGameSer(request,obj,50007)
-        else: #add,在添加页面
-            obj.save()
-            obj.changeTableInMem()
-            self.pushTableInfoToGameSer(request,obj,50006)
