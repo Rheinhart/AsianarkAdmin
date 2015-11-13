@@ -149,7 +149,8 @@ class TVideoAdmin(admin.ModelAdmin):
                 self.message_user(request, "%s" %(message))
         except Exception, e:
             response = HttpResponseRedirect("/admin/baccarat_Controll/tvideo")
-            print 'Cannot send video info to the Game Server.'
+            message = u'通知服务器出错'
+            self.message_user(request, "%s" %(message))
             return response
     delVideoAndPushToGamSer.short_description = u'删除所选视频并通知游戏服务器'
 
@@ -161,13 +162,13 @@ class TVideoAdmin(admin.ModelAdmin):
             response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
             if response.content == '60003':
                 message = u'添加新视频通知服务器成功'
-                self.message_user(request, "%s" %(message))
             elif response.content == '60004':
                 message = u'修改视频通知服务器成功'
-                self.message_user(request, "%s" %(message))
+            self.message_user(request, "%s" %(message))
         except Exception, e:
             response = HttpResponseRedirect("/admin")
-            print 'Cannot send video info to the Game Server.'
+            message = u'通知服务器出错'
+            self.message_user(request, "%s" %(message))
             return response
 
 
@@ -182,6 +183,7 @@ class TVideoAdmin(admin.ModelAdmin):
                 request._set_post(post)
 
         memopr.syncVideoMemAndDb() #此时同步缓存数据库
+        super(TVideoAdmin,self).log_change(request, TVideo.objects.first(), u'自动同步所有视频缓存数据库')
         return super(TVideoAdmin, self).changelist_view(request, extra_context)
 
     def setListPerPage_30(self,request,queryset):
@@ -237,14 +239,14 @@ class TTableAdmin(admin.ModelAdmin):
             response=requests.get('http://%s:%s/table?command=%s'%(url,port,command),data)
             if response.content == '60006':
                 message = u'添加新桌台通知服务器成功'
-                self.message_user(request,message)
             elif response.content == '60007':
                 message = u'修改桌台通知服务器成功'
-                self.message_user(request, "%s" %(message))
+            self.message_user(request, "%s" %(message))
 
         except Exception, e:
             response = HttpResponseRedirect("/admin")
-            print 'Cannot send table info to the Game Server.'
+            message = u'通知服务器出错'
+            self.message_user(request, "%s" %(message))
             return response
 
     def changelist_view(self, request, extra_context=None):
@@ -259,6 +261,7 @@ class TTableAdmin(admin.ModelAdmin):
 
         memopr.syncVideoMemAndDb()
         memopr.syncTableMemAndDb()
+        super(TTableAdmin,self).log_change(request, TTable.objects.first(), u'自动同步所有桌台和视频缓存数据库')
         return super(TTableAdmin, self).changelist_view(request, extra_context)
 
     def setListPerPage_30(self,request,queryset):
