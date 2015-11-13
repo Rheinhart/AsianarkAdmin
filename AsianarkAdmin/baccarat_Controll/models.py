@@ -1,11 +1,15 @@
 #coding:utf8
 # Also note: You'll have to insert the output of 'django-admin sqlcustom [app_label] into your database.
 from __future__ import unicode_literals
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+
 import datetime
+
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
+
 from AsianarkAdmin.baccarat_Controll.memopr import memopr
-from AsianarkAdmin.choicecode import *
+from AsianarkAdmin.tools.choicecode import *
+
 
 class DjangoMigrations(models.Model):
     app = models.CharField(max_length=255)

@@ -2,9 +2,9 @@
 """
 @__author__ = 'Thomas'
 """
-from django.db import models
 import datetime
-from AsianarkAdmin.choicecode import *
+from django.db import models
+from AsianarkAdmin.tools.choicecode import *
 
 
 class TCustomers(models.Model):
