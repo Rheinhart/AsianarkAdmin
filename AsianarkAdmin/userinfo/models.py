@@ -4,11 +4,10 @@
 """
 from django.db import models
 import datetime
+from AsianarkAdmin.choicecode import *
+
 
 class TCustomers(models.Model):
-
-    FLAG = ((0,u'启用'),(1,u'禁用'),)
-    LIMITID=(('A','A'),('B','B'),('C','C'),('D','D'))
 
     loginname = models.CharField(db_column='Loginname',verbose_name= u'用户名', max_length=32,primary_key=True)
     agentcode = models.IntegerField(db_column='AgentCode',verbose_name= u'代理CODE')
@@ -43,7 +42,6 @@ class TCustomers(models.Model):
         else:
             return self.pwd_expired_time.strftime('%Y-%m-%d %H:%M:%S')
     mypwd_expired_time.short_description = u'密码失效时间'
-
 
     def __unicode__(self):
         '''
@@ -89,13 +87,21 @@ class TCustomerTrans(models.Model):
 
 
 class TAgents(models.Model):
-    agentcode = models.IntegerField(db_column='AgentCode', primary_key=True)
-    agentname = models.CharField(db_column='AgentName', max_length=32)
-    password = models.CharField(db_column='Password',max_length=32)
-    flag = models.IntegerField(db_column='Flag')
-    trytype = models.IntegerField(db_column='Try_Type')
-    create_time = models.DateTimeField(db_column='Create_time',default=datetime.datetime.now)
+
+    agentcode = models.IntegerField(db_column='AgentCode', primary_key=True,verbose_name=u'代理CODE')
+    agentname = models.CharField(db_column='AgentName', max_length=32,verbose_name=u'代理名')
+    password = models.CharField(db_column='Password',max_length=32,verbose_name=u'密码')
+    flag = models.IntegerField(db_column='Flag',verbose_name=u'是否禁用',choices=FLAG)
+    trytype = models.IntegerField(db_column='Try_Type',verbose_name=u'是否试用',choices=TRYTYPE)
+    create_time = models.DateTimeField(db_column='Create_time',default=datetime.datetime.now,verbose_name=u'创建时间')
     create_ip = models.GenericIPAddressField(db_column='Create_ip',verbose_name= u'创建IP', max_length=16)
+
+    def mycreate_time(self):
+        if not self.create_time:
+            return self.create_time
+        else:
+            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
 
     class Meta:
         managed = False

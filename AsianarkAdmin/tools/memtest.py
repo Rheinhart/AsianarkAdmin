@@ -23,19 +23,18 @@ if __name__ == '__main__':
     address = ['127.0.0.1:11211']
     hostname = 'bjl'
     mclient.connect(address, hostname)
-    tb_video_admin = MAdmin('t_video', 'videoid', fk="flag")
-
-    obj = tb_video_admin.getAllPkByFk(0)
-    for id in obj:
-        print tb_video_admin.getObjData(id)
-    print '*'*20
-
-    # tb_table_admin = MAdmin('t_table', 'tableid', fk="flag")
+    # tb_video_admin = MAdmin('t_video', 'videoid', fk="flag")
     #
-    # obj = tb_table_admin.getAllPkByFk(0)
+    # obj = tb_video_admin.getAllPkByFk(0)
     # for id in obj:
-    #     print tb_table_admin.getObjData(id)
+    #     print tb_video_admin.getObjData(id)
     # print '*'*20
+
+    tb_table_admin = MAdmin('t_table', 'tableid', fk="flag")
+    obj = tb_table_admin.getAllPkByFk(0)
+    for id in obj:
+        print tb_table_admin.getObjData(id)
+    print '*'*20
 
 
 

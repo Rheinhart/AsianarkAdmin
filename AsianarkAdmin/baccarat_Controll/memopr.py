@@ -12,11 +12,9 @@ from AsianarkAdmin.settings import CACHES,DATABASES
 class Memmode_Operation:
     """Video, Table的缓存操作, 借助firefly memecache的相关api
     """
-
     def __init__(self):
-        """set the mamcache and database """
-
-
+        """set the mamcache and database
+        """
         self.host = [DATABASES['default'].get('HOST')][0]
         self.user = [DATABASES['default'].get('USER')][0]
         self.password = [DATABASES['default'].get('PASSWORD')][0]
@@ -36,17 +34,14 @@ class Memmode_Operation:
         MAdminManager().registe(self.tb_table_admin)
 
     def syncVideoMemAndDb(self):
-        """同步视频缓数据库
-        Sync Viedeoinfo from Memcache into database!
+        """同步视频缓存数据库, 注意, 数据库与缓存不一致时候, 相同PK但其他value不同,缓存已标记删除的value会复现
+        Sync Viedeoinfo Memcache,database!
         """
-        obj = self.tb_video_admin.getAllPkByFk(0)
-        for id in obj:
-            print self.tb_video_admin.getObjData(id)
-        obj = self.tb_video_admin.getAllPkByFk(1)
-        for id in obj:
-            print self.tb_video_admin.getObjData(id)
+        # obj = self.tb_video_admin.getAllPkByFk(0)
+        # for id in obj:
+        #     print self.tb_video_admin.getObjData(id)
         self.tb_video_admin.checkAll()
-        #MAdminManager().checkAdmins()
+        #print 'Show after sync'
 
     def changeVideoInMem(self,mdata):
         """修改视频缓存
@@ -57,32 +52,15 @@ class Memmode_Operation:
         else:
             print 'Not found in memcached!'
 
-    #def refreshVideoDbtoMem(self):
-    #    """更新数据库到视频缓存
-    #    """
-    #    pass
-        #obj = self.tb_video_admin.getAllPkByFk(0)
-        #for id in obj:
-        #    print self.tb_video_admin.getObjData(id)
-        #print '*'*20
-
-        #self.tb_video_admin.insert()
-        # #obj = self.tb_video_admin.getAllPkByFk(0)
-        # for id in obj:
-        #     print self.tb_video_admin.getObjData(id)
-        # obj = self.tb_video_admin.getAllPkByFk(1)
-        # for id in obj:
-        #     print self.tb_video_admin.getObjData(id)
-
     def syncTableMemAndDb(self):
-        """同步桌台缓存数据库
+        """同步桌台缓存数据库, 注意, 数据库与缓存不一致时候, 相同PK但其他value不同,缓存已标记删除的value会复现
         Sync Tableinfo from Memcache into database!
         """
-        print 'Show after sync'
         obj = self.tb_table_admin.getAllPkByFk(0)
         for id in obj:
             print self.tb_table_admin.getObjData(id)
         self.tb_table_admin.checkAll()
+        print 'Show after sync'
 
     def changeTableInMem(self,mdata):
         """修改桌台缓存

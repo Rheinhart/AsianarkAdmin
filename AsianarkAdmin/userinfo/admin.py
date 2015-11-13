@@ -37,33 +37,23 @@ class TCustomersAdmin(admin.ModelAdmin):
 
     def setListPerPage_30(self,request,queryset):
         admin.ModelAdmin.list_per_page=30
-
     setListPerPage_30.short_description = u'每页显示30条'
-
     def setListPerPage_50(self,request,queryset):
         admin.ModelAdmin.list_per_page=50
-
     setListPerPage_50.short_description = u'每页显示50条'
-
     def setListPerPage_100(self,request,queryset):
         admin.ModelAdmin.list_per_page=100
-
     setListPerPage_100.short_description = u'每页显示100条'
-
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
-
     setListPerPage_300.short_description = u'每页显示300条'
-
     def setListPerPage_1000(self,request,queset):
         admin.ModelAdmin.list_per_page=1000
-
     setListPerPage_1000.short_description = u'每页显示1000条'
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
         """
-
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
@@ -75,8 +65,9 @@ class TCustomersAdmin(admin.ModelAdmin):
 
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
+
 @admin.register(TCustomerTrans)
-class TRoundAdmin(admin.ModelAdmin):
+class TCustomerTransAdmin(admin.ModelAdmin):
     list_display = ('transid','loginname','agentcode','action','myaction_time','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
     readonly_fields = ('transid','action_time','loginname','agentcode','action','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
     search_fields =  ('transid','action_time','loginname','agentcode','action','trans_amount_cents')
@@ -90,39 +81,29 @@ class TRoundAdmin(admin.ModelAdmin):
         return False
 
     def get_actions(self, request):
-        actions = super(TRoundAdmin, self).get_actions(request)
+        actions = super(TCustomerTransAdmin, self).get_actions(request)
         del actions['delete_selected']
         return actions
 
     def setListPerPage_30(self,request,queryset):
         admin.ModelAdmin.list_per_page=30
-
     setListPerPage_30.short_description = u'每页显示30条'
-
     def setListPerPage_50(self,request,queryset):
         admin.ModelAdmin.list_per_page=50
-
     setListPerPage_50.short_description = u'每页显示50条'
-
     def setListPerPage_100(self,request,queryset):
         admin.ModelAdmin.list_per_page=100
-
     setListPerPage_100.short_description = u'每页显示100条'
-
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
-
     setListPerPage_300.short_description = u'每页显示300条'
-
     def setListPerPage_1000(self,request,queset):
         admin.ModelAdmin.list_per_page=1000
-
     setListPerPage_1000.short_description = u'每页显示1000条'
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
         """
-
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
@@ -130,11 +111,14 @@ class TRoundAdmin(admin.ModelAdmin):
                     post.update({admin.ACTION_CHECKBOX_NAME: str(u.transid)})
                 request._set_post(post)
 
-        return super(TRoundAdmin, self).changelist_view(request, extra_context)
+        return super(TCustomerTransAdmin, self).changelist_view(request, extra_context)
 
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
 @admin.register(TAgents)
-class TRoundAdmin(admin.ModelAdmin):
-    list_display = ('agentcode','agentname')
+class TAgentsAdmin(admin.ModelAdmin):
+    list_display = ('agentcode','agentname','flag','mycreate_time','create_ip','trytype')
+    search_fields =  ('agentname','agentcode','create_ip','trytype')
+    list_filter = ('agentcode','create_ip','trytype','flag')
+    ordering = ('-agentcode',)

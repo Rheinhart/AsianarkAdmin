@@ -3,10 +3,6 @@
 @__author__ = 'Thomas'
 """
 from django.contrib import admin
-from django import forms
-from AsianarkAdmin.tools.protobuff import login_pb2,bulletin_pb2
-from AsianarkAdmin.tools.protobuff.baccarat import modifyTableLimit_pb2,modifyPersonalLimit_pb2
-
 import requests
 from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
@@ -51,22 +47,17 @@ class TBulletinAdmin(admin.ModelAdmin):
     def setListPerPage_30(self,request,queryset):
         admin.ModelAdmin.list_per_page=30
     setListPerPage_30.short_description = u'每页显示30条'
-
     def setListPerPage_50(self,request,queryset):
         admin.ModelAdmin.list_per_page=50
     setListPerPage_50.short_description = u'每页显示50条'
-
     def setListPerPage_100(self,request,queryset):
         admin.ModelAdmin.list_per_page=100
     setListPerPage_100.short_description = u'每页显示100条'
-
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-
     def setListPerPage_1000(self,request,queset):
         admin.ModelAdmin.list_per_page=1000
-
     setListPerPage_1000.short_description = u'每页显示1000条'
 
     def changelist_view(self, request, extra_context=None):
@@ -87,10 +78,6 @@ class TBulletinAdmin(admin.ModelAdmin):
 def pushBulletinToGameSer(sender,instance,**argvs):
     """push new bulletin to the gameserver after which saved into the database
     """
-        #mybulletin = bulletin_pb2.bulletinResponse()
-        #mybulletin.beginTime = instance.create_time.strftime("%Y-%m-%d %H:%M:%S")
-        #mybulletin.endTime = instance.expired_time.strftime("%Y-%m-%d %H:%M:%S")
-        #mybulletin.text = instance.text
     command = 50013
     if instance.flag == 0:
         try:
@@ -155,44 +142,6 @@ def pushPersonalLimitToGameSer(instance,**argvs):
 @admin.register(TOrders)
 class TOrdersAdmin(admin.ModelAdmin):
 
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-
-    setListPerPage_30.short_description = u'每页显示30条'
-
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-
-    setListPerPage_50.short_description = u'每页显示50条'
-
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-
-    setListPerPage_100.short_description = u'每页显示100条'
-
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-
-    setListPerPage_300.short_description = u'每页显示300条'
-
-    def setListPerPage_1000(self,request,queset):
-        admin.ModelAdmin.list_per_page=1000
-
-
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TOrders.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.billno)})
-                request._set_post(post)
-        return super(TOrdersAdmin, self).changelist_view(request, extra_context)
-
-
     list_display = ('billno','roundcode','loginname','agentcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
                     'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','mycreate_time',
                     'myreckon_time','create_ip')
@@ -217,7 +166,34 @@ class TOrdersAdmin(admin.ModelAdmin):
         del actions['delete_selected']
         return actions
 
+    def setListPerPage_30(self,request,queryset):
+        admin.ModelAdmin.list_per_page=30
+    setListPerPage_30.short_description = u'每页显示30条'
+    def setListPerPage_50(self,request,queryset):
+        admin.ModelAdmin.list_per_page=50
+    setListPerPage_50.short_description = u'每页显示50条'
+    def setListPerPage_100(self,request,queryset):
+        admin.ModelAdmin.list_per_page=100
+    setListPerPage_100.short_description = u'每页显示100条'
+    def setListPerPage_300(self,request,queryset):
+        admin.ModelAdmin.list_per_page=300
+    setListPerPage_300.short_description = u'每页显示300条'
+    def setListPerPage_1000(self,request,queset):
+        admin.ModelAdmin.list_per_page=1000
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+
+    def changelist_view(self, request, extra_context=None):
+        """不选择object的前提下执行action
+        """
+        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
+            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in TOrders.objects.all():
+                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.billno)})
+                request._set_post(post)
+        return super(TOrdersAdmin, self).changelist_view(request, extra_context)
 
 
 @admin.register(TRounds)
@@ -291,33 +267,23 @@ class TRoundAdmin(admin.ModelAdmin):
         del actions['delete_selected']
         return actions
 
-    def save_model(self, request, obj, form, change):
-        obj.save()
-
     def setListPerPage_30(self,request,queryset):
         admin.ModelAdmin.list_per_page=30
-
     setListPerPage_30.short_description = u'每页显示30条'
-
     def setListPerPage_50(self,request,queryset):
         admin.ModelAdmin.list_per_page=50
-
     setListPerPage_50.short_description = u'每页显示50条'
-
     def setListPerPage_100(self,request,queryset):
         admin.ModelAdmin.list_per_page=100
-
     setListPerPage_100.short_description = u'每页显示100条'
-
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
-
     setListPerPage_300.short_description = u'每页显示300条'
-
     def setListPerPage_1000(self,request,queset):
         admin.ModelAdmin.list_per_page=1000
-
     setListPerPage_1000.short_description = u'每页显示1000条'
+
+    actions = [recalcRound,cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
@@ -329,8 +295,6 @@ class TRoundAdmin(admin.ModelAdmin):
                     post.update({admin.ACTION_CHECKBOX_NAME: str(u.roundcode)})
                 request._set_post(post)
         return super(TRoundAdmin, self).changelist_view(request, extra_context)
-
-    actions = [recalcRound,cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
 @admin.register(TRecalcRounds)
@@ -354,33 +318,23 @@ class TRecalcRoundsAdmin(admin.ModelAdmin):
         del actions['delete_selected']
         return actions
 
-    def save_model(self, request, obj, form, change):
-        obj.save()
-
     def setListPerPage_30(self,request,queryset):
         admin.ModelAdmin.list_per_page=30
-
     setListPerPage_30.short_description = u'每页显示30条'
-
     def setListPerPage_50(self,request,queryset):
         admin.ModelAdmin.list_per_page=50
-
     setListPerPage_50.short_description = u'每页显示50条'
-
     def setListPerPage_100(self,request,queryset):
         admin.ModelAdmin.list_per_page=100
-
     setListPerPage_100.short_description = u'每页显示100条'
-
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
-
     setListPerPage_300.short_description = u'每页显示300条'
-
     def setListPerPage_1000(self,request,queset):
         admin.ModelAdmin.list_per_page=1000
-
     setListPerPage_1000.short_description = u'每页显示1000条'
+
+    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
@@ -392,8 +346,6 @@ class TRecalcRoundsAdmin(admin.ModelAdmin):
                     post.update({admin.ACTION_CHECKBOX_NAME: str(u.actionid)})
                 request._set_post(post)
         return super(TRecalcRoundsAdmin, self).changelist_view(request, extra_context)
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
 @admin.register(TVideo)
@@ -419,47 +371,27 @@ class TVideoAdmin(admin.ModelAdmin):
         else:
             return []
 
-    def pushVideoInfoToGameSer(self,command):
-        data = {}
+    def pushVideoInfoToGameSer(self,request,obj,command):
+        """推送更新视频消息到游戏服务器
+        """
+        data = {'videoid':obj.videoid,'url':obj.url,'flag':obj.flag,'bettime':obj.bettime,'gametype':obj.gametype}
         try:
             response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
-            print '%s:%s/video?command=%s'%(url,port,command)
             if response.content == '60003':
-                print 'Send video info to the Game Server successfully.'
+                message = u'添加新视频通知服务器成功'
+                self.message_user(request, "%s" %(message))
+            elif response.content == '60004':
+                message = u'修改视频通知服务器成功'
+                self.message_user(request, "%s" %(message))
         except Exception, e:
             response = HttpResponseRedirect("/admin")
             print 'Cannot send video info to the Game Server.'
             return response
 
-    def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
-
-    setListPerPage_30.short_description = u'每页显示30条'
-
-    def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
-
-    setListPerPage_50.short_description = u'每页显示50条'
-
-    def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
-
-    setListPerPage_100.short_description = u'每页显示100条'
-
-    def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
-
-    setListPerPage_300.short_description = u'每页显示300条'
-
-    def setListPerPage_1000(self,request,queset):
-         admin.ModelAdmin.list_per_page=1000
-
-    setListPerPage_1000.short_description = u'每页显示1000条'
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
         """
-
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
@@ -470,30 +402,32 @@ class TVideoAdmin(admin.ModelAdmin):
         memopr.syncVideoMemAndDb() #此时同步缓存数据库
         return super(TVideoAdmin, self).changelist_view(request, extra_context)
 
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+    setListPerPage_30.short_description = u'每页显示30条'
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+    setListPerPage_50.short_description = u'每页显示50条'
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+    setListPerPage_100.short_description = u'每页显示100条'
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+    setListPerPage_300.short_description = u'每页显示300条'
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def save_model(self, request, obj, form, change):
         if change: #change
             obj.changeVideoInMem() #直接修改缓存
-            self.pushVideoInfoToGameSer(50003)
+            self.pushVideoInfoToGameSer(request,obj,50004)
         else: #add
             obj.save() #先保存到数据库
-            obj.changeVideoInMem()
-            self.pushVideoInfoToGameSer(50003)
-
-# @receiver(post_save, sender=TVideo)
-# def pushVideoInfoToGameSer(instance,**kwargs):
-#     command = 50003
-#     data = {}
-#     try:
-#         response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
-#         print '%s:%s/video?command=%s'%(url,port,command)
-#         if response.content == '60003':
-#             print 'Send video info to the Game Server successfully.'
-#     except Exception, e:
-#         response = HttpResponseRedirect("/admin")
-#         print 'Cannot send video info to the Game Server.'
-#         return response
+            obj.changeVideoInMem()# 修改缓存
+            self.pushVideoInfoToGameSer(request,obj,50003)
 
 
 @admin.register(TTable)
@@ -513,30 +447,23 @@ class TTableAdmin(admin.ModelAdmin):
                 del actions['delete_selected']
         return actions
 
-    def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
+    def pushTableInfoToGameSer(self,request,obj,command):
+        """推送更新桌台消息到游戏服务器
+        """
+        data = {'videoid':obj.videoid.videoid,'gametype':obj.gametype,'tableid':obj.tableid,'flag':obj.flag,'seats':obj.seats,'limitid':obj.limitid}
+        try:
+            response=requests.get('http://%s:%s/table?command=%s'%(url,port,command),data)
+            if response.content == '60006':
+                message = u'添加新桌台通知服务器成功'
+                self.message_user(request,message)
+            elif response.content == '60007':
+                message = u'修改桌台通知服务器成功'
+                self.message_user(request, "%s" %(message))
 
-    setListPerPage_30.short_description = u'每页显示30条'
-
-    def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
-
-    setListPerPage_50.short_description = u'每页显示50条'
-
-    def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
-
-    setListPerPage_100.short_description = u'每页显示100条'
-
-    def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
-
-    setListPerPage_300.short_description = u'每页显示300条'
-
-    def setListPerPage_1000(self,request,queset):
-         admin.ModelAdmin.list_per_page=1000
-
-    setListPerPage_1000.short_description = u'每页显示1000条'
+        except Exception, e:
+            response = HttpResponseRedirect("/admin")
+            print 'Cannot send table info to the Game Server.'
+            return response
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
@@ -552,13 +479,29 @@ class TTableAdmin(admin.ModelAdmin):
         memopr.syncTableMemAndDb()
         return super(TTableAdmin, self).changelist_view(request, extra_context)
 
+    def setListPerPage_30(self,request,queryset):
+         admin.ModelAdmin.list_per_page=30
+    setListPerPage_30.short_description = u'每页显示30条'
+    def setListPerPage_50(self,request,queryset):
+         admin.ModelAdmin.list_per_page=50
+    setListPerPage_50.short_description = u'每页显示50条'
+    def setListPerPage_100(self,request,queryset):
+         admin.ModelAdmin.list_per_page=100
+    setListPerPage_100.short_description = u'每页显示100条'
+    def setListPerPage_300(self,request,queryset):
+         admin.ModelAdmin.list_per_page=300
+    setListPerPage_300.short_description = u'每页显示300条'
+    def setListPerPage_1000(self,request,queset):
+         admin.ModelAdmin.list_per_page=1000
+    setListPerPage_1000.short_description = u'每页显示1000条'
+
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def save_model(self, request, obj, form, change):
         if change: #change,在修改页面
-            print 'change'
-            obj.changeVideoInMem()
+            obj.changeTableInMem()
+            self.pushTableInfoToGameSer(request,obj,50007)
         else: #add,在添加页面
-            print 'add'
             obj.save()
-            obj.changeVideoInMem()
+            obj.changeTableInMem()
+            self.pushTableInfoToGameSer(request,obj,50006)
