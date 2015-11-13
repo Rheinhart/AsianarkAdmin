@@ -100,7 +100,7 @@ class TVideoAdmin(admin.ModelAdmin):
     search_fields = ('videoid','gametype','bettime','url','flag')
     list_filter = ('videoid','gametype','bettime','url','flag')
     ordering = ('videoid',)
-    readonly_fields = ('videoid',)
+    readonly_fields = ('videoid','bettime')
 
     def get_actions(self, request):
         """只允许特定管理者有删除视频权限"""
@@ -112,9 +112,29 @@ class TVideoAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self,request,obj=None):
         if obj:
-            return ['videoid']
+            return ['videoid','bettime']
         else:
             return []
+
+    def delVideoAndPushToGamSer(self, request, queryset):
+        videos = []
+        for obj in queryset:
+            videos.append(obj.videoid)
+            super(TVideoAdmin,self).log_deletion(request, obj, obj.videoid) #自定义删除动作记录到log中
+            obj.delete()
+
+        command = 50005
+        data = videos
+        try:
+            response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
+            if response.content == '60005':
+                message = u'删除视频通知服务器成功'
+                self.message_user(request, "%s" %(message))
+        except Exception, e:
+            response = HttpResponseRedirect("/admin/baccarat_Controll/tvideo")
+            print 'Cannot send video info to the Game Server.'
+            return response
+    delVideoAndPushToGamSer.short_description = u'删除所选视频并通知游戏服务器'
 
     def pushVideoInfoToGameSer(self,request,obj,command):
         """推送更新视频消息到游戏服务器
@@ -163,7 +183,7 @@ class TVideoAdmin(admin.ModelAdmin):
          admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+    actions = [delVideoAndPushToGamSer,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def save_model(self, request, obj, form, change):
         if change: #change
@@ -366,6 +386,7 @@ class TRoundAdmin(admin.ModelAdmin):
     readonly_fields = ('roundcode','gametype','flag','videoid','dealer','cards','cardnum','pair','bankerpoint','playerpoint','begintime','closetime','shoecode',)
 
     def recalcRound(self, request, queryset):
+
         head = u"重新结算局"
         command = 50016
         try:
@@ -373,6 +394,7 @@ class TRoundAdmin(admin.ModelAdmin):
                 roundcode = queryset[0].roundcode
                 flag = queryset[0].flag
                 if flag == 0:
+                    super(TRoundAdmin,self).log_change(request, queryset[0], u'重新结算局') #自定义修改动作记录到log中
                     response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
                     if response.content == '60016':
                         message = u'结算成功'
@@ -391,6 +413,7 @@ class TRoundAdmin(admin.ModelAdmin):
     recalcRound.short_description = u'重新结算局'
 
     def cancelRound(self, request, queryset):
+
         head = u"取消局注单结算"
         command = 50017
         try:
@@ -398,6 +421,7 @@ class TRoundAdmin(admin.ModelAdmin):
                 roundcode = queryset[0].roundcode
                 flag = queryset[0].flag
                 if flag == 0:
+                    super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算') #自定义修改动作记录到log中
                     response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
                     if response.content == '60017':
                         message = u'取消成功'

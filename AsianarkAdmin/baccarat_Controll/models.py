@@ -60,7 +60,7 @@ class TVideo(models.Model):
     videoid = models.CharField(db_column='VideoID', verbose_name= u'视频ID',primary_key=True, max_length=16,help_text=u'不要在删除桌台id前删除相应视频id')
     gametype = models.CharField(db_column='GameType', verbose_name= u'游戏类型', max_length=16,choices=GAMETYPE,default='BJL')
     flag = models.IntegerField(db_column='Flag',verbose_name= u'是否禁用',choices=FLAG,default=0)
-    bettime = models.IntegerField(db_column='BetTime',verbose_name= u'下注倒计时(秒)')
+    bettime = models.IntegerField(db_column='BetTime',verbose_name= u'下注倒计时(秒)',default=0)
     url = models.CharField(db_column='URL', max_length=160,verbose_name= u'URL')
 
     def changeVideoInMem(self):
