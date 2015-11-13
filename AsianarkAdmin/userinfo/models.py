@@ -4,6 +4,10 @@
 """
 import datetime
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.models import User
+from django.conf import settings
 from AsianarkAdmin.tools.choicecode import *
 
 
@@ -59,10 +63,10 @@ class TCustomerTrans(models.Model):
 
 
 class TAgents(models.Model):
-
+    user = models.OneToOneField(User)
     agentcode = models.IntegerField(db_column='AgentCode', primary_key=True,verbose_name=u'代理CODE')
     agentname = models.CharField(db_column='AgentName', max_length=32,verbose_name=u'代理名')
-    password = models.CharField(db_column='Password',max_length=32,verbose_name=u'密码')
+    #password = models.ForeignKey(User,related_name="password",verbose_name=u'密码')
     flag = models.IntegerField(db_column='Flag',verbose_name=u'是否禁用',choices=FLAG)
     trytype = models.IntegerField(db_column='Try_Type',verbose_name=u'是否试用',choices=TRYTYPE)
     create_time = models.DateTimeField(db_column='Create_time',default=datetime.datetime.now,verbose_name=u'创建时间')

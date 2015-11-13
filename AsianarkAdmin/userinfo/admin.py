@@ -5,6 +5,8 @@
 
 from django.contrib import admin
 from AsianarkAdmin.userinfo.models import TCustomers,TCustomerTrans,TAgents
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 
 class DelegateFilter(admin.SimpleListFilter):
 
@@ -15,6 +17,22 @@ class DelegateFilter(admin.SimpleListFilter):
         ##loginnames = set([c.loginname for c in model_admin.modelobjs.all()])
         return [c.loginname for c in model_admin.model.objcts.all()]
 
+
+@admin.register(TAgents)
+class TAgentsAdmin(admin.ModelAdmin):
+
+    def mycreate_time(self,obj):
+        if not obj.create_time:
+            return obj.create_time
+        else:
+            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+    mycreate_time.admin_order_field = 'create_time'
+
+    list_display = ('agentcode','agentname','mycreate_time','create_ip','trytype','flag')
+    search_fields =  ('agentcode','agentname','create_ip','trytype')
+    list_filter = ('agentcode','agentname','create_ip','trytype','flag')
+    ordering = ('agentcode',)
 
 @admin.register(TCustomers)
 class TCustomersAdmin(admin.ModelAdmin):
@@ -42,6 +60,7 @@ class TCustomersAdmin(admin.ModelAdmin):
             return obj.pwd_expired_time.strftime('%Y-%m-%d %H:%M:%S')
     mypwd_expired_time.short_description = u'密码失效时间'
     mypwd_expired_time.admin_order_field = 'pwd_expired_time'
+
 
     readonly_fields = ('loginname','agentcode','password','nickname','credit_cents','create_time','create_ip','last_login_time','pwd_expired_time','last_login_ip')
     list_display = ('loginname','agentcode','nickname','credit_cents','limitid','mycreate_time','create_ip','mylast_login_time','last_login_ip','mypwd_expired_time','flag')
@@ -75,8 +94,19 @@ class TCustomersAdmin(admin.ModelAdmin):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
+    def get_queryset(self, request):
+        """只显示代理数据
+        """
+
+        qs = super(TCustomersAdmin, self).get_queryset(request)
+        inner_qs=TAgents.objects.filter(user_id=request.user.id)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(agentcode=inner_qs)
+
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
+
         """
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
@@ -149,18 +179,15 @@ class TCustomerTransAdmin(admin.ModelAdmin):
     actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
 
-@admin.register(TAgents)
-class TAgentsAdmin(admin.ModelAdmin):
-
-    def mycreate_time(self,obj):
-        if not obj.create_time:
-            return obj.create_time
-        else:
-            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-    mycreate_time.admin_order_field = 'create_time'
-
-    list_display = ('agentcode','agentname','flag','mycreate_time','create_ip','trytype')
-    search_fields =  ('agentname','agentcode','create_ip','trytype')
-    list_filter = ('agentcode','create_ip','trytype','flag')
-    ordering = ('-agentcode',)
+# class TAgentsInline(admin.StackedInline):
+#     model = TAgents
+#     can_delete = False
+#     verbose_name = u'代理'
+#
+#
+# class UserAdmin(UserAdmin):
+#     inlines = (TAgentsInline,)
+#
+#
+# admin.site.unregister(User)
+# admin.site.register(User,UserAdmin)

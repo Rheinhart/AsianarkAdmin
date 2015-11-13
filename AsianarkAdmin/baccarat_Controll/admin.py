@@ -220,7 +220,8 @@ class TTableAdmin(admin.ModelAdmin):
     list_display = ('tableid','videoid','limitid','seats','flag')
     search_fields = ('tableid','videoid','limitid','seats','flag')
     ordering = ('tableid','seats','videoid')
-    list_filter = ('videoid','flag','limitid','seats')
+    list_filter = ('tableid','videoid','flag','limitid','seats')
+    #list_filter = ('videoid','flag','limitid','seats')
     readonly_fields = ('gametype',)
 
     def get_actions(self, request):
