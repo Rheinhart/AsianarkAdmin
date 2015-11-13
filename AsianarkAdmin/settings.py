@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'AsianarkAdmin.userinfo',
     'AsianarkAdmin.baccarat_Controll',
     'AsianarkAdmin.serverinfo',
+    'AsianarkAdmin.admin_log',
     #'debug_toolbar',
 
 )

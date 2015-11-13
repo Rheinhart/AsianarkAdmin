@@ -35,11 +35,28 @@ def pushLoginMessageToGameSer(**kwargs):
 @admin.register(TBulletin)
 class TBulletinAdmin(admin.ModelAdmin):
 
+    def mycreate_time(self,obj):
+        if not obj.create_time:
+            return obj.create_time
+        else:
+            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+    mycreate_time.admin_order_field = 'create_time'
+
+    def myexpired_time(self,obj):
+        if not obj.expired_time:
+            return obj.expired_time
+        else:
+            return obj.expired_time.strftime('%Y-%m-%d %H:%M:%S')
+    myexpired_time.short_description = u'到期时间'
+    myexpired_time.admin_order_field = 'create_time'
+
     list_display = ('bulletinid','text','mycreate_time','myexpired_time')
     search_fields = ('bulletinid','text')
     list_filter = ('create_time','expired_time')
     ordering = ('-bulletinid',)
     readonly_fields = ('create_time','flag')
+
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -321,6 +338,23 @@ def pushPersonalLimitToGameSer(instance,**argvs):
 @admin.register(TOrders)
 class TOrdersAdmin(admin.ModelAdmin):
 
+    def mycreate_time(self,obj):
+        if not obj.create_time:
+            return obj.create_time
+        else:
+            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+    mycreate_time.admin_order_field = 'create_time'
+
+    def myreckon_time(self,obj):
+        if not obj.reckon_time:
+            return obj.reckon_time
+        else:
+            return obj.reckon_time.strftime('%Y-%m-%d %H:%M:%S')
+    myreckon_time.short_description = u'结算时间'
+    myreckon_time.admin_order_field = 'reckon_time'
+
+
     list_display = ('billno','roundcode','loginname','agentcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
                     'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','mycreate_time',
                     'myreckon_time','create_ip')
@@ -379,6 +413,24 @@ class TOrdersAdmin(admin.ModelAdmin):
 class TRoundAdmin(admin.ModelAdmin):
     """游戏局记录管理
     """
+
+    def mybegintime(self,obj):
+        if not obj.begintime:
+            return obj.begintime
+        else:
+            return obj.begintime.strftime('%Y-%m-%d %H:%M:%S')
+    mybegintime.short_description = u'开始时间'
+    mybegintime.admin_order_field = 'begintime'
+
+    def myclosetime(self,obj):
+        if not obj.closetime:
+            return obj.closetime
+        else:
+            return obj.closetime.strftime('%Y-%m-%d %H:%M:%S')
+    myclosetime.short_description = u'结束时间'
+    myclosetime.admin_order_field = 'closetime'
+
+
     list_display = ('roundcode','gametype','flag','videoid','dealer','cards','cardnum','pair','bankerpoint','playerpoint','mybegintime','myclosetime','shoecode')
     search_fields = ('roundcode','gametype','flag','dealer','cards','shoecode')
     list_filter = ('gametype','dealer','videoid','flag','cards','begintime','closetime')
@@ -394,13 +446,13 @@ class TRoundAdmin(admin.ModelAdmin):
                 roundcode = queryset[0].roundcode
                 flag = queryset[0].flag
                 if flag == 0:
-                    super(TRoundAdmin,self).log_change(request, queryset[0], u'重新结算局') #自定义修改动作记录到log中
                     response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
                     if response.content == '60016':
                         message = u'结算成功'
                     else:
                          message = u'结算失败'
                     self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+                    super(TRoundAdmin,self).log_change(request, queryset[0], u'重新结算局:%s'%message) #自定义修改动作记录到log中
                 else:
                     message = u'已经结算过,无法重新结算'
                     self.message_user(request, "%s: %s%s" %(head,roundcode,message))
@@ -410,6 +462,7 @@ class TRoundAdmin(admin.ModelAdmin):
         except Exception, e:
             message = u'发送指令出错'
             self.message_user(request, "%s: %s" %(head,message))
+            super(TRoundAdmin,self).log_change(request, queryset[0], u'重新结算局:%s'%message) #自定义修改动作记录到log中
     recalcRound.short_description = u'重新结算局'
 
     def cancelRound(self, request, queryset):
@@ -421,13 +474,13 @@ class TRoundAdmin(admin.ModelAdmin):
                 roundcode = queryset[0].roundcode
                 flag = queryset[0].flag
                 if flag == 0:
-                    super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算') #自定义修改动作记录到log中
                     response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
                     if response.content == '60017':
                         message = u'取消成功'
                     else:
                         message = u'取消失败'
                     self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+                    super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算:%s'%message) #自定义修改动作记录到log中
                 else:
                     message = u'已经结算过,无法取消'
                     self.message_user(request, "%s: %s%s" %(head,roundcode,message))
@@ -437,6 +490,7 @@ class TRoundAdmin(admin.ModelAdmin):
         except Exception, e:
             message = u'发送指令出错'
             self.message_user(request, "%s:%s" %(head,message))
+            super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算:%s'%message) #自定义修改动作记录到log中
     cancelRound.short_description = u'取消局注单结算'
 
     def has_add_permission(self, request,obj=None):
@@ -484,6 +538,14 @@ class TRoundAdmin(admin.ModelAdmin):
 class TRecalcRoundsAdmin(admin.ModelAdmin):
     """重新结算游戏局记录
     """
+    def mycreate_time(self,obj):
+        if not obj.create_time:
+            return obj.create_time
+        else:
+            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+    mycreate_time.admin_order_field = 'create_time'
+
     list_display = ('actionid','action','mycreate_time','roundcode')
     search_fields = ('actionid','create_time','action','roundcode')
     list_filter = ('actionid','action','create_time','roundcode')

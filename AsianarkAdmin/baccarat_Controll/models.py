@@ -1,15 +1,12 @@
 #coding:utf8
 # Also note: You'll have to insert the output of 'django-admin sqlcustom [app_label] into your database.
 from __future__ import unicode_literals
-
 import datetime
-
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-
 from AsianarkAdmin.baccarat_Controll.memopr import memopr
 from AsianarkAdmin.tools.choicecode import *
-
+from django.utils.encoding import smart_text
 
 class DjangoMigrations(models.Model):
     app = models.CharField(max_length=255)
@@ -30,20 +27,6 @@ class TBulletin(models.Model):
     expired_time = models.DateTimeField(verbose_name= u'到期时间',default=tomorrow) #多一天
     text = models.TextField(max_length=200,verbose_name= u'公告内容')
     flag = models.IntegerField(verbose_name= u'是否禁用',choices=FLAG,default=0)   #0:启用,1:禁用
-
-    def mycreate_time(self):
-        if not self.create_time:
-            return self.create_time
-        else:
-            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-
-    def myexpired_time(self):
-        if not self.expired_time:
-            return self.expired_time
-        else:
-            return self.expired_time.strftime('%Y-%m-%d %H:%M:%S')
-    myexpired_time.short_description = u'到期时间'
 
     def __unicode__(self):
         return '公告 %s' %self.bulletinid
@@ -167,19 +150,6 @@ class TOrders(models.Model):
     create_ip = models.GenericIPAddressField(verbose_name= u'创建IP', max_length=16,default='0.0.0.0')
 
 
-    def mycreate_time(self):
-        if not self.create_time:
-            return self.create_time
-        else:
-            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-    def myreckon_time(self):
-        if not self.reckon_time:
-            return self.reckon_time
-        else:
-            return self.reckon_time.strftime('%Y-%m-%d %H:%M:%S')
-    myreckon_time.short_description = u'结算时间'
-
     def __unicode__(self):
         return '%s'%self.billno
 
@@ -206,19 +176,6 @@ class TRounds(models.Model):
     closetime = models.DateTimeField(blank=True, null=True,verbose_name= u'结束时间')
     shoecode = models.CharField(max_length=16,verbose_name='靴号')
 
-    def mybegintime(self):
-        if not self.begintime:
-            return self.begintime
-        else:
-            return self.begintime.strftime('%Y-%m-%d %H:%M:%S')
-    mybegintime.short_description = u'开始时间'
-
-    def myclosetime(self):
-        if not self.closetime:
-            return self.closetime
-        else:
-            return self.closetime.strftime('%Y-%m-%d %H:%M:%S')
-    myclosetime.short_description = u'结束时间'
 
     def __unicode__(self):
         return '%s'%self.roundcode
@@ -236,13 +193,6 @@ class TRecalcRounds(models.Model):
     create_time = models.DateTimeField(db_column='Create_time',verbose_name= u'创建时间',default=datetime.datetime.now)
     action = models.CharField(max_length=64,verbose_name=u'操作')
     roundcode = models.CharField(max_length=16,verbose_name=u'游戏局号')
-
-    def mycreate_time(self):
-        if not self.create_time:
-            return self.create_time
-        else:
-            return self.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
 
     def __unicode__(self):
         return '%s'%self.actionid

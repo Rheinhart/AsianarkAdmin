@@ -19,6 +19,30 @@ class DelegateFilter(admin.SimpleListFilter):
 @admin.register(TCustomers)
 class TCustomersAdmin(admin.ModelAdmin):
 
+    def mycreate_time(self,obj):
+        if not obj.create_time:
+            return obj.create_time
+        else:
+            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+    mycreate_time.admin_order_field = 'create_time'
+
+    def mylast_login_time(self,obj):
+        if not obj.last_login_time:
+            return obj.last_login_time
+        else:
+            return obj.last_login_time.strftime('%Y-%m-%d %H:%M:%S')
+    mylast_login_time.short_description = u'最后一次登录时间'
+    mylast_login_time.admin_order_field = 'last_login_time'
+
+    def mypwd_expired_time(self,obj):
+        if not obj.pwd_expired_time:
+            return obj.pwd_expired_time
+        else:
+            return obj.pwd_expired_time.strftime('%Y-%m-%d %H:%M:%S')
+    mypwd_expired_time.short_description = u'密码失效时间'
+    mypwd_expired_time.admin_order_field = 'pwd_expired_time'
+
     readonly_fields = ('loginname','agentcode','password','nickname','credit_cents','create_time','create_ip','last_login_time','pwd_expired_time','last_login_ip')
     list_display = ('loginname','agentcode','nickname','credit_cents','limitid','mycreate_time','create_ip','mylast_login_time','last_login_ip','mypwd_expired_time','flag')
     search_fields = ('loginname','agentcode','nickname','credit_cents','limitid','create_time','create_ip','last_login_time','last_login_ip','pwd_expired_time','flag')
@@ -68,6 +92,15 @@ class TCustomersAdmin(admin.ModelAdmin):
 
 @admin.register(TCustomerTrans)
 class TCustomerTransAdmin(admin.ModelAdmin):
+
+    def myaction_time(self,obj):
+        if not obj.action_time:
+            return obj.action_time
+        else:
+            return obj.action_time.strftime('%Y-%m-%d %H:%M:%S')
+    myaction_time.short_description = u'创建时间'
+    myaction_time.admin_order_field = 'action_time'
+
     list_display = ('transid','loginname','agentcode','action','myaction_time','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
     readonly_fields = ('transid','action_time','loginname','agentcode','action','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
     search_fields =  ('transid','action_time','loginname','agentcode','action','trans_amount_cents')
@@ -118,6 +151,15 @@ class TCustomerTransAdmin(admin.ModelAdmin):
 
 @admin.register(TAgents)
 class TAgentsAdmin(admin.ModelAdmin):
+
+    def mycreate_time(self,obj):
+        if not obj.create_time:
+            return obj.create_time
+        else:
+            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
+    mycreate_time.short_description = u'创建时间'
+    mycreate_time.admin_order_field = 'create_time'
+
     list_display = ('agentcode','agentname','flag','mycreate_time','create_ip','trytype')
     search_fields =  ('agentname','agentcode','create_ip','trytype')
     list_filter = ('agentcode','create_ip','trytype','flag')
