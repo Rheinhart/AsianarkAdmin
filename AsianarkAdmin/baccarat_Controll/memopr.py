@@ -58,7 +58,7 @@ class Memmode_Operation:
         """
         obj = self.tb_table_admin.getAllPkByFk(0)
         for id in obj:
-            print self.tb_table_admin.getObjData(id)
+            print self.tb_table_admin.getObjData(str(id))
         self.tb_table_admin.checkAll()
         print 'Show after sync'
 
