@@ -61,6 +61,11 @@ class TCustomersAdmin(admin.ModelAdmin):
     mypwd_expired_time.short_description = u'密码失效时间'
     mypwd_expired_time.admin_order_field = 'pwd_expired_time'
 
+    # def get_current_credit(self,obj):
+    #     """计算当前用户交易总额度
+    #     """
+    #     return obj.credit_cents+sum(current_credit.trans_amount_cents for current_credit in TCustomerTrans.objects.all().filter(loginname=obj.loginname))
+    # get_current_credit.short_description = u'当前信用额度'
 
     readonly_fields = ('loginname','agentcode','password','nickname','credit_cents','create_time','create_ip','last_login_time','pwd_expired_time','last_login_ip')
     list_display = ('loginname','agentcode','nickname','credit_cents','limitid','mycreate_time','create_ip','mylast_login_time','last_login_ip','mypwd_expired_time','flag')
@@ -98,7 +103,6 @@ class TCustomersAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """只显示代理数据
         """
-
         qs = super(TCustomersAdmin, self).get_queryset(request)
         inner_qs=TAgents.objects.filter(user_id=request.user.id)
         if request.user.is_superuser:
@@ -168,6 +172,7 @@ class TCustomerTransAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
         """
+
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()

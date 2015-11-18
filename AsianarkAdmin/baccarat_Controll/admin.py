@@ -406,8 +406,11 @@ class TOrdersAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
         """
+
+        #统计功能
         all_orders=TOrders.objects.all()
         valid_bet_list = all_orders.values_list('valid_bet_amount_cents', flat=True)
+        win_bet_list =  all_orders.values_list('win_amount_cents', flat=True)
 
         bet_amount_small =sum(all_orders[:admin.ModelAdmin.list_per_page].values_list('bet_amount_cents', flat=True)) #小计当前页投注额
         valid_bet_amount_small = sum(valid_bet for valid_bet in valid_bet_list[:admin.ModelAdmin.list_per_page] if valid_bet is not None) #小计有效投注额
@@ -416,10 +419,15 @@ class TOrdersAdmin(admin.ModelAdmin):
         bet_amount_total =sum(all_orders.values_list('bet_amount_cents', flat=True)) #总计投注额
         valid_bet_amount_total = sum(valid_bet for valid_bet in valid_bet_list if valid_bet is not None) #总计有效投注额
 
+        win_amount_total = sum(win_bet for win_bet in win_bet_list if win_bet is not None) #总计盈利
+        earnings_rate = float(win_amount_total) / valid_bet_amount_total *100 #盈利率
+
 
         extra_context = {'bet_amount_small':bet_amount_small,'valid_bet_amount_small':valid_bet_amount_small,
-                         'bet_number_total':bet_number_total,'bet_amount_total':bet_amount_total,'valid_bet_amount_total':valid_bet_amount_total,}
+                         'bet_number_total':bet_number_total,'bet_amount_total':bet_amount_total,'valid_bet_amount_total':valid_bet_amount_total,
+                         'win_amount_total':win_amount_total,'earnings_rate':earnings_rate}
 
+        #设置无选翻页func
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
