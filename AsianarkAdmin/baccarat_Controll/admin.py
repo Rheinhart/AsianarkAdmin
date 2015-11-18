@@ -9,6 +9,7 @@ from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TRecalcRounds,TVideo,TTable,TOrders
+from AsianarkAdmin.baccarat_Controll.forms import TBulletinForm
 from AsianarkAdmin.settings import GAME_SERVER
 from memopr import memopr
 
@@ -34,6 +35,7 @@ def pushLoginMessageToGameSer(**kwargs):
 
 @admin.register(TBulletin)
 class TBulletinAdmin(admin.ModelAdmin):
+    form = TBulletinForm
 
     def mycreate_time(self,obj):
         if not obj.create_time:
@@ -129,7 +131,7 @@ class TVideoAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self,request,obj=None):
         if obj:
-            return ['videoid','bettime']
+            return ['videoid',]
         else:
             return []
 
@@ -359,14 +361,14 @@ class TOrdersAdmin(admin.ModelAdmin):
     myreckon_time.admin_order_field = 'reckon_time'
 
 
-    list_display = ('billno','roundcode','loginname','agentcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
+    list_display = ('loginname','billno','roundcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
                     'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','mycreate_time',
-                    'myreckon_time','create_ip')
-    readonly_fields = ('billno','gametype','loginname','agentcode','roundcode','videoid','tableid','seat','dealer','flag','playtype',
+                    'myreckon_time','create_ip','agentcode')
+    readonly_fields = ('loginname','billno','gametype','agentcode','roundcode','videoid','tableid','seat','dealer','flag','playtype',
                     'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','create_time',
                     'reckon_time','create_ip','hashcode')
     search_fields = ('billno','loginname','agentcode','roundcode','videoid','tableid','create_time','reckon_time',)
-    list_filter = ('create_time','reckon_time','flag')
+    list_filter = ('loginname','create_time','reckon_time','flag')
     ordering = ('-create_time','-billno')
 
     def has_add_permission(self, request,obj=None):
@@ -404,6 +406,9 @@ class TOrdersAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
         """
+        total = TOrders.objects.count()
+
+        extra_context = {'bet_number_total':total}
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
@@ -440,6 +445,8 @@ class TRoundAdmin(admin.ModelAdmin):
     list_filter = ('gametype','dealer','videoid','flag','cards','begintime','closetime')
     ordering = ('-roundcode',)
     readonly_fields = ('roundcode','gametype','flag','videoid','dealer','cards','cardnum','pair','bankerpoint','playerpoint','begintime','closetime','shoecode',)
+    list_editable =  ('cards',)
+
 
     def recalcRound(self, request, queryset):
 
@@ -497,11 +504,11 @@ class TRoundAdmin(admin.ModelAdmin):
             super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算:%s'%message) #自定义修改动作记录到log中
     cancelRound.short_description = u'取消局注单结算'
 
-    def has_add_permission(self, request,obj=None):
-        return False
+    #def has_add_permission(self, request,obj=None):
+    #    return False
 
-    def has_delete_permission(self,request,obj=None):
-        return False
+    #def has_delete_permission(self,request,obj=None):
+    #    return False
 
     def get_actions(self, request):
         actions = super(TRoundAdmin, self).get_actions(request)

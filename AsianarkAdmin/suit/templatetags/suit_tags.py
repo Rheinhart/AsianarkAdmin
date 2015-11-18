@@ -95,3 +95,7 @@ def admin_extra_filters(cl):
 @register.assignment_tag
 def suit_django_version():
     return utils.django_major_version()
+
+@register.tag
+def get_range(value):
+    return range(value)

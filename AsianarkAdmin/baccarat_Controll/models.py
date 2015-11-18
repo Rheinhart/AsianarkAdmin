@@ -20,7 +20,8 @@ class DjangoMigrations(models.Model):
 class TBulletin(models.Model):
     """公告信息
     """
-    tomorrow = datetime.datetime.now()+datetime.timedelta(days = 1)
+    def tomorrow(self):
+        return datetime.datetime.now()+datetime.timedelta(days = 1)
 
     bulletinid = models.AutoField(verbose_name= u'公告ID',max_length=11,primary_key=True)
     create_time = models.DateTimeField(verbose_name= u'创建时间',default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -128,26 +129,28 @@ class TPersonalLimitset(models.Model):
 class TOrders(models.Model):
 
 
-    billno = models.IntegerField(primary_key=True,verbose_name=u'注单号')
+    billno = models.IntegerField(primary_key=True,verbose_name=u'注单号码')
     gametype = models.CharField(max_length=16,verbose_name=u'游戏类型',choices=GAMETYPE)
-    loginname = models.CharField(max_length=32,verbose_name=u'用户名')
+    loginname = models.CharField(max_length=32,verbose_name=u'账户名称')
     agentcode = models.IntegerField(db_column='AgentCode',verbose_name=u'代理CODE')
-    roundcode = models.CharField(max_length=16,verbose_name=u'游戏局ID')
+    roundcode = models.CharField(max_length=16,verbose_name=u'游戏局号')
     videoid = models.CharField(db_column='videoid',max_length=16,verbose_name= u'视频ID',default='')
     tableid = models.CharField(db_column='tableid',max_length=16,verbose_name= u'桌台ID',default='')
     seat = models.IntegerField(verbose_name=u'位置',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     dealer = models.CharField(max_length=16,verbose_name='荷官')
     flag = models.IntegerField(db_column='Flag',verbose_name= u'结算标志',choices=ORDERFLAG,default=0)
     playtype = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name=u'玩法')
-    bet_amount_cents = models.IntegerField(default=0,verbose_name=u'下注额')
+    bet_amount_cents = models.IntegerField(default=0,verbose_name=u'投注额')
     valid_bet_amount_cents = models.IntegerField(default=0,verbose_name=u'有效投注额')
     win_amount_cents = models.IntegerField(default=0,verbose_name=u'盈利额')
     hashcode = models.CharField(max_length=32,verbose_name='哈希值')
-    before_credit_cents = models.IntegerField(db_column='Before_credit_Cents',verbose_name=u'下注前额度',default=0)
-    after_credit_cents = models.IntegerField(db_column='After_credit_Cents',verbose_name=u'下注后额度',default=0)
+    before_credit_cents = models.IntegerField(db_column='Before_credit_Cents',verbose_name=u'原额度',default=0)
+    after_credit_cents = models.IntegerField(db_column='After_credit_Cents',verbose_name=u'现额度',default=0)
     create_time = models.DateTimeField(db_column='Create_time',verbose_name= u'创建时间',default=datetime.datetime.now)
     reckon_time = models.DateTimeField(db_column='Reckon_time',verbose_name=u'结算时间',blank=True,null=True)
-    create_ip = models.GenericIPAddressField(verbose_name= u'创建IP', max_length=16,default='0.0.0.0')
+    create_ip = models.GenericIPAddressField(verbose_name= u'创建IP', max_length=16)
+
+
 
 
     def __unicode__(self):

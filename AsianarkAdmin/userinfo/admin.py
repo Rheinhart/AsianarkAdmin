@@ -65,6 +65,7 @@ class TCustomersAdmin(admin.ModelAdmin):
     readonly_fields = ('loginname','agentcode','password','nickname','credit_cents','create_time','create_ip','last_login_time','pwd_expired_time','last_login_ip')
     list_display = ('loginname','agentcode','nickname','credit_cents','limitid','mycreate_time','create_ip','mylast_login_time','last_login_ip','mypwd_expired_time','flag')
     search_fields = ('loginname','agentcode','nickname','credit_cents','limitid','create_time','create_ip','last_login_time','last_login_ip','pwd_expired_time','flag')
+    list_filter = ('loginname',)
     ordering = ('-create_time','nickname',)
 
     def has_add_permission(self, request,obj=None):
@@ -134,7 +135,7 @@ class TCustomerTransAdmin(admin.ModelAdmin):
     list_display = ('transid','loginname','agentcode','action','myaction_time','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
     readonly_fields = ('transid','action_time','loginname','agentcode','action','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
     search_fields =  ('transid','action_time','loginname','agentcode','action','trans_amount_cents')
-    list_filter = ('action_time','agentcode','action')
+    list_filter = ('loginname','action_time','agentcode','action')
     ordering = ('-transid',)
 
     def has_add_permission(self, request,obj=None):

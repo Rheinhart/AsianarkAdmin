@@ -3,7 +3,6 @@
 @__author__ = 'Thomas'
 """
 from django.contrib import admin
-
 from django.contrib.admin.models import LogEntry
 
 
