@@ -20,8 +20,7 @@ class DjangoMigrations(models.Model):
 class TBulletin(models.Model):
     """公告信息
     """
-    def tomorrow(self):
-        return datetime.datetime.now()+datetime.timedelta(days = 1)
+    tomorrow = datetime.datetime.now()+datetime.timedelta(days = 1)
 
     bulletinid = models.AutoField(verbose_name= u'公告ID',max_length=11,primary_key=True)
     create_time = models.DateTimeField(verbose_name= u'创建时间',default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
