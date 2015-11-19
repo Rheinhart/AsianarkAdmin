@@ -427,6 +427,8 @@ class TOrdersAdmin(admin.ModelAdmin):
                          'bet_number_total':bet_number_total,'bet_amount_total':bet_amount_total,'valid_bet_amount_total':valid_bet_amount_total,
                          'win_amount_total':win_amount_total,'earnings_rate':earnings_rate}
 
+        self.change_list_template = 'admin/%s/%s/change_list.html' % (TOrders._meta.app_label, 'TOrders') #for Linux! error because chinese verbose name
+
         #设置无选翻页func
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
