@@ -33,6 +33,7 @@ def pushLoginMessageToGameSer(**kwargs):
             return response
 
 
+
 @admin.register(TBulletin)
 class TBulletinAdmin(admin.ModelAdmin):
     form = TBulletinForm
@@ -172,7 +173,6 @@ class TVideoAdmin(admin.ModelAdmin):
             message = u'通知服务器出错'
             self.message_user(request, "%s" %(message))
             return response
-
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
@@ -465,9 +465,8 @@ class TRoundAdmin(admin.ModelAdmin):
     search_fields = ('roundcode','gametype','flag','dealer','cards','shoecode')
     list_filter = ('gametype','dealer','videoid','flag','cards','begintime','closetime')
     ordering = ('-roundcode',)
-    readonly_fields = ('roundcode','gametype','flag','videoid','dealer','cards','cardnum','pair','bankerpoint','playerpoint','begintime','closetime','shoecode',)
-    list_editable =  ('cards',)
-
+    readonly_fields = ('roundcode','gametype','flag','videoid','dealer','cardnum','pair','bankerpoint','playerpoint','begintime','closetime','shoecode',)
+    #list_editable =  ('cards',)
 
     def recalcRound(self, request, queryset):
 
@@ -477,8 +476,9 @@ class TRoundAdmin(admin.ModelAdmin):
             if len(queryset) == 1:
                 roundcode = queryset[0].roundcode
                 flag = queryset[0].flag
+                cards = queryset[0].cards
                 if flag == 0:
-                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
+                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s&cards=%s'%(url,port,command,roundcode,cards))
                     if response.content == '60016':
                         message = u'结算成功'
                     else:
@@ -525,8 +525,8 @@ class TRoundAdmin(admin.ModelAdmin):
             super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算:%s'%message) #自定义修改动作记录到log中
     cancelRound.short_description = u'取消局注单结算'
 
-    #def has_add_permission(self, request,obj=None):
-    #    return False
+    def has_add_permission(self, request,obj=None):
+        return False
 
     #def has_delete_permission(self,request,obj=None):
     #    return False
@@ -552,7 +552,7 @@ class TRoundAdmin(admin.ModelAdmin):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
-    actions = [recalcRound,cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
+    actions = [cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
@@ -564,6 +564,35 @@ class TRoundAdmin(admin.ModelAdmin):
                     post.update({admin.ACTION_CHECKBOX_NAME: str(u.roundcode)})
                 request._set_post(post)
         return super(TRoundAdmin, self).changelist_view(request, extra_context)
+
+    def save_model(self, request, obj, form, change):
+
+        if change:
+            obj.save()
+            head = u"重新结算局"
+            command = 50016
+            try:
+                roundcode = obj.roundcode
+                flag = obj.flag
+                cards = obj.cards
+                if flag == 0:
+                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s&cards=%s'%(url,port,command,roundcode,cards))
+                    if response.content == '60016':
+                        message = u'结算成功'
+                    else:
+                        message = u'结算失败'
+                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+                    super(TRoundAdmin,self).log_change(request, obj, u'重新结算局:%s'%message) #自定义修改动作记录到log中
+                else:
+                    message = u'已经结算过,无法重新结算'
+                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
+            except Exception, e:
+                message = u'发送指令出错'
+                self.message_user(request, "%s: %s" %(head,message))
+                super(TRoundAdmin,self).log_change(request, obj, u'重新结算局:%s'%message) #自定义修改动作记录到log中
+        else:
+            message = u'已经结算过'
+            self.message_user(request, "%s: %s%s" %(message))
 
 
 @admin.register(TRecalcRounds)
