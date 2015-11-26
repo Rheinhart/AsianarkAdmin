@@ -32,8 +32,6 @@ def pushLoginMessageToGameSer(**kwargs):
             response = HttpResponseRedirect("/admin")
             return response
 
-
-
 @admin.register(TBulletin)
 class TBulletinAdmin(admin.ModelAdmin):
     form = TBulletinForm
@@ -59,7 +57,6 @@ class TBulletinAdmin(admin.ModelAdmin):
     list_filter = ('create_time','expired_time')
     ordering = ('-bulletinid',)
     readonly_fields = ('create_time','flag')
-
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -568,15 +565,13 @@ class TRoundAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
 
         if change:
-            obj.save()
             head = u"重新结算局"
             command = 50016
             try:
                 roundcode = obj.roundcode
                 flag = obj.flag
-                cards = obj.cards
                 if flag == 0:
-                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s&cards=%s'%(url,port,command,roundcode,cards))
+                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
                     if response.content == '60016':
                         message = u'结算成功'
                     else:
@@ -590,6 +585,7 @@ class TRoundAdmin(admin.ModelAdmin):
                 message = u'发送指令出错'
                 self.message_user(request, "%s: %s" %(head,message))
                 super(TRoundAdmin,self).log_change(request, obj, u'重新结算局:%s'%message) #自定义修改动作记录到log中
+            obj.save()
         else:
             message = u'已经结算过'
             self.message_user(request, "%s: %s%s" %(message))
