@@ -169,7 +169,7 @@ class TRounds(models.Model):
     videoid = models.CharField(db_column='videoid',max_length=16,verbose_name= u'视频ID')
     dealer = models.CharField(blank=True, null=True , max_length=16,verbose_name= u'荷官')
     flag = models.IntegerField(db_column= u'Flag',verbose_name= u'结算标志',choices=FLAG,default=0)
-    cards = models.CharField(max_length=24, blank=True, null=True,verbose_name=u'牌值列表')
+    cards = models.CharField(max_length=24, blank=True, null=True,verbose_name=u'牌值列表',help_text=u'请按照格式1,2,3:4,5,6输入')
     cardnum = models.IntegerField(blank=True, null=True,verbose_name=u'牌张数',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     pair = models.IntegerField(blank=True,null=True,choices=PAIR,verbose_name=u'庄闲对',validators=[MinValueValidator(0), MaxValueValidator(9999)])
     bankerpoint = models.IntegerField(blank=True, null=True,validators=[MinValueValidator(0), MaxValueValidator(9999)],verbose_name= u'庄家点数')

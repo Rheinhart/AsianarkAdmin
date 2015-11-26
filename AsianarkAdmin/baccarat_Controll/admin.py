@@ -73,7 +73,7 @@ class TBulletinAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -197,7 +197,7 @@ class TVideoAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
          admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
          admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -276,7 +276,7 @@ class TTableAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
          admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
          admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -394,7 +394,7 @@ class TOrdersAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -522,11 +522,13 @@ class TRoundAdmin(admin.ModelAdmin):
             super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算:%s'%message) #自定义修改动作记录到log中
     cancelRound.short_description = u'取消局注单结算'
 
+
     def has_add_permission(self, request,obj=None):
         return False
-
     def has_delete_permission(self,request,obj=None):
         return False
+    def has_change_permission(self, request, obj=None):
+        return True
 
     def get_actions(self, request):
         actions = super(TRoundAdmin, self).get_actions(request)
@@ -545,7 +547,7 @@ class TRoundAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -561,6 +563,7 @@ class TRoundAdmin(admin.ModelAdmin):
                     post.update({admin.ACTION_CHECKBOX_NAME: str(u.roundcode)})
                 request._set_post(post)
         return super(TRoundAdmin, self).changelist_view(request, extra_context)
+
 
     def save_model(self, request, obj, form, change):
 
@@ -632,7 +635,7 @@ class TRecalcRoundsAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 

@@ -153,7 +153,7 @@ TIMEOUT = None   #cache time out!
 #Game Server
 GAME_SERVER = {
     'dafault':{
-        'URL':'127.0.0.1',
+        'URL':'202.77.29.210',
         'PORT':'2012',
         'NAME':'bjl_Game_Ser'
     }

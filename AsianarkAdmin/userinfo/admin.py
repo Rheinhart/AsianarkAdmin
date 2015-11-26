@@ -34,6 +34,16 @@ class TAgentsAdmin(admin.ModelAdmin):
     list_filter = ('agentcode','agentname','create_ip','trytype','flag')
     ordering = ('agentcode',)
 
+    def save_model(self, request, obj, form, change):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ipaddress = x_forwarded_for.split(',')[-1].strip()
+        else:
+            ipaddress = request.META.get('REMOTE_ADDR')
+        TAgents.create_ip=ipaddress
+        print TAgents.create_ip
+
+
 @admin.register(TCustomers)
 class TCustomersAdmin(admin.ModelAdmin):
 
@@ -67,7 +77,7 @@ class TCustomersAdmin(admin.ModelAdmin):
     #     return obj.credit_cents+sum(current_credit.trans_amount_cents for current_credit in TCustomerTrans.objects.all().filter(loginname=obj.loginname))
     # get_current_credit.short_description = u'当前信用额度'
 
-    readonly_fields = ('loginname','agentcode','password','nickname','credit_cents','create_time','create_ip','last_login_time','pwd_expired_time','last_login_ip')
+    readonly_fields = ('loginname','agentcode','password','nickname','create_time','create_ip','last_login_time','pwd_expired_time','last_login_ip')
     list_display = ('loginname','agentcode','nickname','credit_cents','limitid','mycreate_time','create_ip','mylast_login_time','last_login_ip','mypwd_expired_time','flag')
     search_fields = ('loginname','agentcode','nickname','credit_cents','limitid','create_time','create_ip','last_login_time','last_login_ip','pwd_expired_time','flag')
     list_filter = ('loginname',)
@@ -96,7 +106,7 @@ class TCustomersAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
@@ -111,7 +121,6 @@ class TCustomersAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         """不选择object的前提下执行action
-
         """
         if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
             if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
@@ -165,7 +174,7 @@ class TCustomerTransAdmin(admin.ModelAdmin):
     def setListPerPage_300(self,request,queryset):
         admin.ModelAdmin.list_per_page=300
     setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
+    def setListPerPage_1000(self,request,queryset):
         admin.ModelAdmin.list_per_page=1000
     setListPerPage_1000.short_description = u'每页显示1000条'
 
