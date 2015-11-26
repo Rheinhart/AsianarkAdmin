@@ -525,8 +525,8 @@ class TRoundAdmin(admin.ModelAdmin):
     def has_add_permission(self, request,obj=None):
         return False
 
-    #def has_delete_permission(self,request,obj=None):
-    #    return False
+    def has_delete_permission(self,request,obj=None):
+        return False
 
     def get_actions(self, request):
         actions = super(TRoundAdmin, self).get_actions(request)
