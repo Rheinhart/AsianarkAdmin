@@ -4,10 +4,10 @@ AsianarkAdmin 配置（Python 3 / Django 6）。
 设计要点
 --------
 * 所有环境相关项都走环境变量 / .env，代码里不留口令、不留主机名。
-* 本地开发默认 sqlite + ASIANARK_MANAGED_TABLES=1（Django 建表，可跑测试、可造数）；
-  连线上老库时设 ASIANARK_DB=mysql、ASIANARK_MANAGED_TABLES=0，模型全部 managed=False，
-  Django 不碰表结构（老库的索引脚本见 docs/legacy_db_indexes.sql）。
-* 时区 Asia/Shanghai —— 老配置是 UTC，导致后台显示的时间比实际早 8 小时。
+* 业务模型全部 managed=False（表结构属于老库）：本地开发用
+  ``manage.py init_local_db`` 建表，线上直接连老库，Django 不改表结构
+  （老库需要补的索引见 docs/legacy_db_indexes.sql）。
+* 时区 Asia/Shanghai（后台显示时间与现场一致）。
 """
 from __future__ import annotations
 
