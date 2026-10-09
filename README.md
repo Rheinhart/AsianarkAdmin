@@ -33,7 +33,8 @@ python manage.py runserver
 跑测试（26 个用例：分页、统计条、过滤器、写路径、权限隔离、页面冒烟）：
 
 ```bash
-python manage.py test AsianarkAdmin.baccarat_Controll
+python manage.py test                                   # 全部
+python manage.py test AsianarkAdmin.baccarat_Controll   # 只跑一个 app
 ```
 
 3 万注单 / 2000 客户下的实测（SQLite + 开发服务器，仅供参考）：

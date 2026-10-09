@@ -207,6 +207,9 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
 
+# ------------------------------------------------------------------ 测试
+TEST_RUNNER = "AsianarkAdmin.test_runner.DiscoverRunner"
+
 # ------------------------------------------------------------------ 日志（推送失败、缓存同步异常都要能查到）
 LOGGING = {
     "version": 1,
