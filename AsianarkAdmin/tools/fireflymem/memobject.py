@@ -23,10 +23,10 @@ class MemObject:
     def produceKey(self,keyname):
         '''重新生成key
         '''
-        if isinstance(keyname, basestring):
+        if isinstance(keyname, str):
             return ''.join([self._name,':',keyname])
         else:
-            raise "type error"
+            raise TypeError("type error")
         
     def locked(self):
         '''检测对象是否被锁定

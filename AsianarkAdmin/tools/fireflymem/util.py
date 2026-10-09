@@ -5,10 +5,15 @@ Created on 2013-5-8
 @author: lan (www.9miao.com)
 '''
 
-from dbpool import dbpool
-from MySQLdb.cursors import DictCursor
+from .dbpool import dbpool
+try:  # pragma: no cover - 依赖可选
+    from MySQLdb.cursors import DictCursor
+except ImportError:  # pragma: no cover
+    from pymysql.cursors import DictCursor
 from numbers import Number
-from twisted.python import log
+import logging
+
+logger = logging.getLogger("asianark.firefly")
 
 
 def forEachPlusInsertProps(tablename,props):
@@ -127,9 +132,9 @@ def DeleteFromDB(tablename,props):
     try:
         count = cursor.execute(sql)
         conn.commit()
-    except Exception,e:
-        log.err(e)
-        log.err(sql)
+    except Exception as e:
+        logger.error("%s", e)
+        logger.error("SQL: %s", sql)
     cursor.close()
     conn.close()
     return bool(count)
@@ -144,9 +149,9 @@ def InsertIntoDB(tablename,data):
     try:
         count = cursor.execute(sql)
         conn.commit()
-    except Exception,e:
-        log.err(e)
-        log.err(sql)
+    except Exception as e:
+        logger.error("%s", e)
+        logger.error("SQL: %s", sql)
     cursor.close()
     conn.close()
     return bool(count)
@@ -161,9 +166,9 @@ def UpdateWithDict(tablename,props,prere):
     try:
         count = cursor.execute(sql)
         conn.commit()
-    except Exception,e:
-        log.err(e)
-        log.err(sql)
+    except Exception as e:
+        logger.error("%s", e)
+        logger.error("SQL: %s", sql)
     cursor.close()
     conn.close()
     if(count >= 1):

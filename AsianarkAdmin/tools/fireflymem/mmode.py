@@ -4,9 +4,9 @@ Created on 2013-5-8
 
 @author: lan (www.9miao.com)
 '''
-from memclient import mclient
-from memobject import MemObject
-import util
+from .memclient import mclient
+from .memobject import MemObject
+from . import util
 import time
 
 MMODE_STATE_ORI = 0     #未变更
@@ -117,7 +117,7 @@ class MMode(MemObject):
             prere = {pk:props.get(pk)}
             result = util.DeleteFromDB(tablename,prere)
         #根据9秒@qindavid 同学的建议修改了这里可能会出现db与memcached数据不统一的bug。
-        if result and state<>MMODE_STATE_DEL:
+        if result and state != MMODE_STATE_DEL:
             MemObject.update(self,'_state', MMODE_STATE_ORI)
         ######################################################################
             

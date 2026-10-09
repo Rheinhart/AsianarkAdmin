@@ -1,208 +1,167 @@
-#coding:utf8
+# -*- coding: utf-8 -*-
+"""客户 / 流水 / 代理后台。
+
+主要修复：
+* `TAgentsAdmin.save_model` 老代码写的是 `TAgents.create_ip = ip`（给**类的字段描述符**赋值）
+  而且**没有 obj.save()** → 代理编辑被静默丢弃。现在正常保存并记录来源 IP。
+* 数据隔离挪到 `AgentScopedAdminMixin`，客户、流水、注单三张表统一生效。
+* 删掉了拼错且从未使用的 `DelegateFilter`（`model_admin.model.objcts`）。
+* 分页/过滤器/金额渲染统一走 admin_ext。
 """
-@__author__ = 'Thomas'
-"""
+from __future__ import annotations
 
 from django.contrib import admin
-from AsianarkAdmin.userinfo.models import TCustomers,TCustomerTrans,TAgents
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.utils.html import format_html
 
-class DelegateFilter(admin.SimpleListFilter):
+from AsianarkAdmin.admin_ext.actions import export_csv
+from AsianarkAdmin.admin_ext.badges import cents, choice_badge, dt
+from AsianarkAdmin.admin_ext.filters import relative_date_filter
+from AsianarkAdmin.admin_ext.pagination import FastPaginationMixin
+from AsianarkAdmin.admin_ext.scoping import AgentScopedAdminMixin
+from AsianarkAdmin.admin_ext.site import admin_site
 
-    title = 'Customers'
-    parameter_name = 'loginname'
+from .models import TAgents, TCustomerTrans, TCustomers
 
-    def lookups(self, request, model_admin):
-        ##loginnames = set([c.loginname for c in model_admin.modelobjs.all()])
-        return [c.loginname for c in model_admin.model.objcts.all()]
+CustomerRegFilter = relative_date_filter(
+    title="注册时间", parameter_name="reg_range", field_name="create_time"
+)
+TransTimeFilter = relative_date_filter(
+    title="发生时间", parameter_name="date_range", field_name="action_time"
+)
 
 
-@admin.register(TAgents)
-class TAgentsAdmin(admin.ModelAdmin):
+@admin.register(TCustomers, site=admin_site)
+class TCustomersAdmin(AgentScopedAdminMixin, FastPaginationMixin, admin.ModelAdmin):
+    list_display = (
+        "loginname",
+        "nickname",
+        "agentcode",
+        "credit_cell",
+        "limitid",
+        "flag_cell",
+        "created_cell",
+        "last_login_cell",
+        "create_ip",
+    )
+    list_display_links = ("loginname",)
+    search_fields = ("loginname", "nickname", "create_ip")
+    search_help_text = "用户名、昵称、注册IP"
+    # 老配置 list_filter=('loginname',) → 对全表 DISTINCT 再渲染几万个 option
+    list_filter = ("flag", "limitid", "agentcode", CustomerRegFilter)
+    list_per_page = 50
+    actions = (export_csv,)
+    ordering = ("-create_time", "loginname")
 
-    def mycreate_time(self,obj):
-        if not obj.create_time:
-            return obj.create_time
-        else:
-            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-    mycreate_time.admin_order_field = 'create_time'
+    readonly_fields = (
+        "loginname",
+        "agentcode",
+        "create_time",
+        "create_ip",
+        "last_login_time",
+        "last_login_ip",
+        "pwd_expired_time",
+    )
 
-    list_display = ('agentcode','agentname','mycreate_time','create_ip','trytype','flag')
-    search_fields =  ('agentcode','agentname','create_ip','trytype')
-    list_filter = ('agentcode','agentname','create_ip','trytype','flag')
-    ordering = ('agentcode',)
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="信用额度", ordering="credit_cents")
+    def credit_cell(self, obj):
+        return cents(obj.credit_cents)
+
+    @admin.display(description="状态", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag")
+
+    @admin.display(description="创建时间", ordering="create_time")
+    def created_cell(self, obj):
+        return dt(obj.create_time)
+
+    @admin.display(description="最后一次登录", ordering="last_login_time")
+    def last_login_cell(self, obj):
+        return format_html(
+            "{} <span class='quiet'>{}</span>", dt(obj.last_login_time), obj.last_login_ip or ""
+        )
+
+
+@admin.register(TCustomerTrans, site=admin_site)
+class TCustomerTransAdmin(AgentScopedAdminMixin, FastPaginationMixin, admin.ModelAdmin):
+    list_display = (
+        "transid",
+        "loginname",
+        "agentcode",
+        "action",
+        "amount_cell",
+        "before_cell",
+        "after_cell",
+        "time_cell",
+        "remark",
+    )
+    list_display_links = ("transid",)
+    search_fields = ("transid", "loginname", "action", "remark")
+    list_filter = ("action", "agentcode", TransTimeFilter)
+    ordering = ("-transid",)
+    list_per_page = 50
+    actions = (export_csv,)
+
+    readonly_fields = tuple(field.name for field in TCustomerTrans._meta.fields)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="转账额度", ordering="trans_amount_cents")
+    def amount_cell(self, obj):
+        return cents(obj.trans_amount_cents, signed=True)
+
+    @admin.display(description="操作前额度")
+    def before_cell(self, obj):
+        return cents(obj.before_credit_cents)
+
+    @admin.display(description="操作后额度")
+    def after_cell(self, obj):
+        return cents(obj.after_credit_cents)
+
+    @admin.display(description="操作时间", ordering="action_time")
+    def time_cell(self, obj):
+        return dt(obj.action_time)
+
+
+@admin.register(TAgents, site=admin_site)
+class TAgentsAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = ("agentcode", "agentname", "user", "trytype_cell", "flag_cell", "created_cell", "create_ip")
+    list_display_links = ("agentcode",)
+    search_fields = ("agentcode", "agentname")
+    list_filter = ("flag", "trytype")
+    ordering = ("agentcode",)
+    list_per_page = 50
+    autocomplete_fields = ("user",)
 
     def save_model(self, request, obj, form, change):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ipaddress = x_forwarded_for.split(',')[-1].strip()
-        else:
-            ipaddress = request.META.get('REMOTE_ADDR')
-        TAgents.create_ip=ipaddress
-        print TAgents.create_ip
+        # 老代码：TAgents.create_ip = ip（改的是类的字段描述符）+ 没有 obj.save() → 编辑全部丢失
+        obj.create_ip = _client_ip(request)
+        obj.save()
+
+    @admin.display(description="是否试用", ordering="trytype")
+    def trytype_cell(self, obj):
+        return choice_badge(obj, "trytype")
+
+    @admin.display(description="状态", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag")
+
+    @admin.display(description="创建时间", ordering="create_time")
+    def created_cell(self, obj):
+        return dt(obj.create_time)
 
 
-@admin.register(TCustomers)
-class TCustomersAdmin(admin.ModelAdmin):
-
-    def mycreate_time(self,obj):
-        if not obj.create_time:
-            return obj.create_time
-        else:
-            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-    mycreate_time.admin_order_field = 'create_time'
-
-    def mylast_login_time(self,obj):
-        if not obj.last_login_time:
-            return obj.last_login_time
-        else:
-            return obj.last_login_time.strftime('%Y-%m-%d %H:%M:%S')
-    mylast_login_time.short_description = u'最后一次登录时间'
-    mylast_login_time.admin_order_field = 'last_login_time'
-
-    def mypwd_expired_time(self,obj):
-        if not obj.pwd_expired_time:
-            return obj.pwd_expired_time
-        else:
-            return obj.pwd_expired_time.strftime('%Y-%m-%d %H:%M:%S')
-    mypwd_expired_time.short_description = u'密码失效时间'
-    mypwd_expired_time.admin_order_field = 'pwd_expired_time'
-
-    # def get_current_credit(self,obj):
-    #     """计算当前用户交易总额度
-    #     """
-    #     return obj.credit_cents+sum(current_credit.trans_amount_cents for current_credit in TCustomerTrans.objects.all().filter(loginname=obj.loginname))
-    # get_current_credit.short_description = u'当前信用额度'
-
-    readonly_fields = ('loginname','agentcode','password','nickname','create_time','create_ip','last_login_time','pwd_expired_time','last_login_ip')
-    list_display = ('loginname','agentcode','nickname','credit_cents','limitid','mycreate_time','create_ip','mylast_login_time','last_login_ip','mypwd_expired_time','flag')
-    search_fields = ('loginname','agentcode','nickname','credit_cents','limitid','create_time','create_ip','last_login_time','last_login_ip','pwd_expired_time','flag')
-    list_filter = ('loginname',)
-    ordering = ('-create_time','nickname',)
-
-    def has_add_permission(self, request,obj=None):
-        return False
-
-    def has_delete_permission(self,request,obj=None):
-        return False
-
-    def get_actions(self, request):
-        actions = super(TCustomersAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-        admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    def get_queryset(self, request):
-        """只显示代理数据
-        """
-        qs = super(TCustomersAdmin, self).get_queryset(request)
-        inner_qs=TAgents.objects.filter(user_id=request.user.id)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(agentcode=inner_qs)
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TCustomers.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.loginname)})
-                request._set_post(post)
-
-        return super(TCustomersAdmin, self).changelist_view(request, extra_context)
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-
-@admin.register(TCustomerTrans)
-class TCustomerTransAdmin(admin.ModelAdmin):
-
-    def myaction_time(self,obj):
-        if not obj.action_time:
-            return obj.action_time
-        else:
-            return obj.action_time.strftime('%Y-%m-%d %H:%M:%S')
-    myaction_time.short_description = u'创建时间'
-    myaction_time.admin_order_field = 'action_time'
-
-    list_display = ('transid','loginname','agentcode','action','myaction_time','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
-    readonly_fields = ('transid','action_time','loginname','agentcode','action','trans_amount_cents','before_credit_cents','after_credit_cents','remark')
-    search_fields =  ('transid','action_time','loginname','agentcode','action','trans_amount_cents')
-    list_filter = ('loginname','action_time','agentcode','action')
-    ordering = ('-transid',)
-
-    def has_add_permission(self, request,obj=None):
-        return False
-
-    def has_delete_permission(self,request,obj=None):
-        return False
-
-    def get_actions(self, request):
-        actions = super(TCustomerTransAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-        admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TCustomerTrans.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.transid)})
-                request._set_post(post)
-
-        return super(TCustomerTransAdmin, self).changelist_view(request, extra_context)
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-
-# class TAgentsInline(admin.StackedInline):
-#     model = TAgents
-#     can_delete = False
-#     verbose_name = u'代理'
-#
-#
-# class UserAdmin(UserAdmin):
-#     inlines = (TAgentsInline,)
-#
-#
-# admin.site.unregister(User)
-# admin.site.register(User,UserAdmin)
+def _client_ip(request) -> str:
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "")

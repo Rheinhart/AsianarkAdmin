@@ -1,57 +1,50 @@
-#coding:utf8
+# -*- coding: utf-8 -*-
+"""后台操作日志（LogEntry）。
+
+老代码在 `TVideo/TTable.changelist_view` 里每次 GET 都 `log_change(...)` 写一条
+"自动同步所有视频缓存数据库" —— 审计日志被刷成噪音，而且列表页变慢。
+现在只在真正的操作（保存、删除、批量动作）里记日志。
 """
-@__author__ = 'Thomas'
-"""
+from __future__ import annotations
+
 from django.contrib import admin
-from django.contrib.admin.models import LogEntry
+from django.contrib.admin.models import ADDITION, CHANGE, DELETION, LogEntry
+
+from AsianarkAdmin.admin_ext.badges import dt
+from AsianarkAdmin.admin_ext.filters import relative_date_filter
+from AsianarkAdmin.admin_ext.pagination import FastPaginationMixin
+from AsianarkAdmin.admin_ext.site import admin_site
+
+LogTimeFilter = relative_date_filter(
+    title="操作时间", parameter_name="date_range", field_name="action_time"
+)
+
+ACTION_NAMES = {
+    ADDITION: "新增",
+    CHANGE: "修改",
+    DELETION: "删除",
+}
 
 
-@admin.register(LogEntry)
-class LogEntryAdmin(admin.ModelAdmin):
-    """管理员操作日志
-    """
+@admin.register(LogEntry, site=admin_site)
+class LogEntryAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = ("id", "time_cell", "user", "action_name", "content_type", "object_repr", "change_message")
+    list_display_links = ("id",)
+    search_fields = ("object_repr", "change_message", "user__username")
+    list_filter = ("action_flag", LogTimeFilter)
+    ordering = ("-id",)
+    list_per_page = 50
 
-    def myaction_time(self,obj):
-        if not obj.action_time:
-            return obj.action_time
-        else:
-            return obj.action_time.strftime('%Y-%m-%d %H:%M:%S')
-    myaction_time.short_description = u'开始时间'
-    myaction_time.admin_order_field = 'action_time'
+    def has_add_permission(self, request):
+        return False
 
-    list_display = ('id','myaction_time','user', 'content_type', 'object_id', 'object_repr', 'action_flag', 'change_message')
-    ordering = ('-id',)
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queset):
-        admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
+    @admin.display(description="操作时间", ordering="action_time")
+    def time_cell(self, obj):
+        return dt(obj.action_time)
 
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in LogEntry.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.id)})
-                request._set_post(post)
-        return super(LogEntryAdmin, self).changelist_view(request, extra_context)
-
-
-
-
-
+    @admin.display(description="动作", ordering="action_flag")
+    def action_name(self, obj):
+        return ACTION_NAMES.get(obj.action_flag, str(obj.action_flag))

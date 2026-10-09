@@ -35,10 +35,10 @@ class MemClient:
     def produceKey(self,keyname):
         '''
         '''
-        if isinstance(keyname, basestring):
+        if isinstance(keyname, str):
             return ''.join([self._hostname,':',keyname])
         else:
-            raise "type error"
+            raise TypeError("type error")
         
     def get(self,key):
         '''

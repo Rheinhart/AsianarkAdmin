@@ -4,10 +4,17 @@ Created on 2013-5-8
 
 @author: lan (www.9miao.com)
 '''
-from DBUtils.PooledDB import PooledDB
-import MySQLdb
+try:  # DBUtils 3.x
+    from dbutils.pooled_db import PooledDB
+except ImportError:  # DBUtils 1.x
+    from DBUtils.PooledDB import PooledDB
 
-DBCS = {'mysql':MySQLdb,}
+try:
+    import MySQLdb
+    DBCS = {'mysql': MySQLdb}
+except ImportError:  # pragma: no cover
+    import pymysql
+    DBCS = {'mysql': pymysql}
 
 class DBPool(object):
     '''

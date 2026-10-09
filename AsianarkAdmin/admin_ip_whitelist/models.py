@@ -1,49 +1,51 @@
-#coding:utf8
-# dvska made
-# Licensed under the Apache License, Version 2.0 (the "License");
+# -*- coding: utf-8 -*-
+"""后台登录 IP 白名单。"""
+from __future__ import annotations
 
-
-from django.db import models
-from django.db.models.signals import post_save, post_delete
 from django.core.cache import cache
+from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 
-ADMIN_ACCESS_WHITELIST_PREFIX = 'DJANGO_ADMIN_ACCESS_WHITELIST:'
-WHITELIST_PREFIX = 'DJANGO_ADMIN_ACCESS_WHITELIST:'
+CACHE_PREFIX = "DJANGO_ADMIN_ACCESS_WHITELIST:"
+NEGATIVE_TTL = 300
 
 
 class DjangoAdminAccessIPWhitelist(models.Model):
-    whitelist_reason = models.CharField(max_length=255,verbose_name=u'白名单', help_text=u'设置白名单理由')
-    ip = models.CharField(max_length=255, help_text=u'输入白名单ip地址')
-
-    def __unicode__(self):
-        return u'白名单 %s (%s) ' %(self.ip, self.whitelist_reason)
-
-    def __str__(self):
-        return self.__unicode__()
+    whitelist_reason = models.CharField(max_length=255, verbose_name="白名单", help_text="填写加白名单的原因")
+    ip = models.CharField(max_length=255, help_text="白名单 IP")
 
     class Meta:
-        permissions = (("can_whitelist_user", "Can Whitelist User"),)
-        verbose_name = u'管理员登录IP白名单'
-        verbose_name_plural = u'管理员登录IP白名单'
-        db_table = 'django_admin_access_ip_whitelist'
+        permissions = [("can_whitelist_user", "Can Whitelist User")]
+        verbose_name = "管理员登录IP白名单"
+        verbose_name_plural = "管理员登录IP白名单"
+        db_table = "django_admin_access_ip_whitelist"
+
+    def __str__(self):
+        return f"白名单 {self.ip}（{self.whitelist_reason}）"
 
 
-def _generate_cache_key(instance):
-    return ADMIN_ACCESS_WHITELIST_PREFIX + instance.ip
+def _cache_key(ip: str) -> str:
+    return CACHE_PREFIX + ip
 
 
-def _update_cache(sender, **kwargs):
-    # add a whitelist entry
-    instance = kwargs.get('instance')
-    cache_key = _generate_cache_key(instance)
-    cache.set(cache_key, "1")
+def is_ip_whitelisted(ip: str) -> bool:
+    """先查缓存，未命中回源数据库并缓存结果（老实现只在进程启动时读一次）。"""
+    if cache.get(_cache_key(ip)):
+        return True
+    hit = DjangoAdminAccessIPWhitelist.objects.filter(ip=ip).exists()
+    if hit:
+        cache.set(_cache_key(ip), "1", None)
+    else:
+        cache.set(_cache_key(ip), "", NEGATIVE_TTL)
+    return hit
 
 
-def _delete_cache(sender, **kwargs):
-    instance = kwargs.get('instance')
-    cache_key = _generate_cache_key(instance)
-    cache.delete(cache_key)
+@receiver(post_save, sender=DjangoAdminAccessIPWhitelist, dispatch_uid="ip_whitelist_cache_set")
+def _update_cache(sender, instance, **kwargs):
+    cache.set(_cache_key(instance.ip), "1", None)
 
 
-post_save.connect(_update_cache, sender=DjangoAdminAccessIPWhitelist)
-post_delete.connect(_delete_cache, sender=DjangoAdminAccessIPWhitelist)
+@receiver(post_delete, sender=DjangoAdminAccessIPWhitelist, dispatch_uid="ip_whitelist_cache_del")
+def _delete_cache(sender, instance, **kwargs):
+    cache.delete(_cache_key(instance.ip))

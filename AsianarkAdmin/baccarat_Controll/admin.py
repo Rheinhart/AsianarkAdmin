@@ -1,653 +1,430 @@
-#coding:utf8
+# -*- coding: utf-8 -*-
+"""游戏业务后台。
+
+与老版本的主要差别（详见 README「改了什么」一节）：
+
+* 删掉了 9 份 `setListPerPage_*`（45 个方法）和 9 处 `request._set_post` hack，
+  统一由 `FastPaginationMixin` 提供 `?per_page=25|50|100|200`；
+* `list_filter` 不再放高基数字段（loginname / videoid / url / tableid / seats），
+  时间字段改用 `RelativeDateFilter`；
+* 注单页的合计条改成对 `cl.queryset` 做一次 `aggregate()`，跟随筛选，
+  "本页小计"真的只算当前页，且不会除零；
+* `save_model` 一律先 `obj.save()`（老代码改视频/改桌台只写 memcache 不写库）；
+* 删除通知走 `delete_model/delete_queryset`（框架扩展点），不再自定义删除 action；
+* 不再 `del actions['delete_selected']`，改用 `has_delete_permission`；
+* 时间列统一走 `badges.dt`（受 settings.TIME_ZONE 控制），金额统一按"分"渲染。
 """
-@__author__ = 'Thomas'
-"""
-from django.contrib import admin
-import requests
-from django.dispatch import receiver
-from django.contrib.auth.signals import user_logged_in
-from django.db.models.signals import post_save
-from django.http import HttpResponseRedirect
-from AsianarkAdmin.baccarat_Controll.models import TBulletin,TTableLimitset,TPersonalLimitset,TRounds,TRecalcRounds,TVideo,TTable,TOrders
-from AsianarkAdmin.baccarat_Controll.forms import TBulletinForm
-from AsianarkAdmin.settings import GAME_SERVER
-from memopr import memopr
+from __future__ import annotations
 
-url =  GAME_SERVER['dafault'].get('URL')
-port = GAME_SERVER['dafault'].get('PORT')
+from django.contrib import admin, messages
+from django.db.models import Count, Sum, Value
+from django.db.models.functions import Coalesce
+from django.utils.html import format_html
 
-@receiver(user_logged_in)
-def pushLoginMessageToGameSer(**kwargs):
-    """push message to the gameserver when login
-       code: 0x00050002
-    """
-    command = 50001
-    data = {'controller':kwargs['user']}
-    try:
-        response=requests.get('http://%s:%s/controller?command=%s'%(url,port,command),data)
-        if response.content == '60001':
-            print 'Game Server received.'
-    except Exception, e:
-            print "Cannot send message to Game Server"
-            response = HttpResponseRedirect("/admin")
-            return response
+from AsianarkAdmin.admin_ext.actions import export_csv
+from AsianarkAdmin.admin_ext.badges import badge, cents, choice_badge, dt
+from AsianarkAdmin.admin_ext.filters import relative_date_filter
+from AsianarkAdmin.admin_ext.pagination import FastPaginationMixin
+from AsianarkAdmin.admin_ext.scoping import AgentScopedAdminMixin
+from AsianarkAdmin.admin_ext.site import admin_site
+from AsianarkAdmin.admin_ext.stats import ChangelistStatsMixin
 
-@admin.register(TBulletin)
-class TBulletinAdmin(admin.ModelAdmin):
+from . import services
+from .forms import TBulletinForm
+from .models import (
+    TBulletin,
+    TOrders,
+    TPersonalLimitset,
+    TRecalcRounds,
+    TRounds,
+    TTable,
+    TTableLimitset,
+    TVideo,
+)
+
+OrderDateFilter = relative_date_filter(
+    title="创建时间", parameter_name="date_range", field_name="create_time"
+)
+ReckonDateFilter = relative_date_filter(
+    title="结算时间", parameter_name="reckon_range", field_name="reckon_time"
+)
+RoundDateFilter = relative_date_filter(
+    title="开局时间", parameter_name="date_range", field_name="begintime"
+)
+
+
+# ====================================================================== 公告
+@admin.register(TBulletin, site=admin_site)
+class TBulletinAdmin(FastPaginationMixin, admin.ModelAdmin):
     form = TBulletinForm
 
-    def mycreate_time(self,obj):
-        if not obj.create_time:
-            return obj.create_time
-        else:
-            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-    mycreate_time.admin_order_field = 'create_time'
+    list_display = ("bulletinid", "text_short", "created_cell", "expired_cell", "flag_cell")
+    list_display_links = ("bulletinid",)
+    search_fields = ("bulletinid", "text")
+    list_filter = ("flag",)
+    ordering = ("-bulletinid",)
+    readonly_fields = ("create_time",)
+    list_per_page = 50
 
-    def myexpired_time(self,obj):
-        if not obj.expired_time:
-            return obj.expired_time
-        else:
-            return obj.expired_time.strftime('%Y-%m-%d %H:%M:%S')
-    myexpired_time.short_description = u'到期时间'
-    myexpired_time.admin_order_field = 'create_time'
+    @admin.display(description="公告内容")
+    def text_short(self, obj):
+        text = obj.text or ""
+        return text if len(text) <= 40 else format_html("{}…", text[:40])
 
-    list_display = ('bulletinid','text','mycreate_time','myexpired_time')
-    search_fields = ('bulletinid','text')
-    list_filter = ('create_time','expired_time')
-    ordering = ('-bulletinid',)
-    readonly_fields = ('create_time','flag')
+    @admin.display(description="创建时间", ordering="create_time")
+    def created_cell(self, obj):
+        return dt(obj.create_time)
+
+    @admin.display(description="到期时间", ordering="expired_time")
+    def expired_cell(self, obj):
+        return dt(obj.expired_time)
+
+    @admin.display(description="状态", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag")
+
+
+# ====================================================================== 视频
+@admin.register(TVideo, site=admin_site)
+class TVideoAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = ("videoid", "gametype", "bettime", "url", "flag_cell", "tables_cell")
+    list_display_links = ("videoid",)
+    search_fields = ("videoid", "url")
+    # 老配置把 videoid / bettime / url / flag 全塞进 list_filter：
+    # 每个字段都会对全表 DISTINCT 并渲染一个下拉框，url 和 bettime 根本没有过滤意义。
+    list_filter = ("gametype", "flag")
+    ordering = ("videoid",)
+    list_per_page = 50
+    actions = ("repush", "export_csv")
+
+    def get_queryset(self, request):
+        # 一次 annotate 代替每行一次 ttable_set.count()（N+1）
+        return super().get_queryset(request).annotate(_tables=Count("ttable"))
+
+    def get_readonly_fields(self, request, obj=None):
+        # 新增时主键必须可填，编辑时锁死
+        return ("videoid",) if obj else ()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def save_model(self, request, obj, form, change):
+        obj.save()  # ← 老代码在 change 分支只写 memcache，不写数据库
+        services.sync_video(obj)
+        if not services.push_video(obj, created=not change):
+            self.message_user(
+                request,
+                "已保存，但通知游戏服失败（已加入重试队列，可用 manage.py flush_push_queue 重放）。",
+                messages.WARNING,
+            )
+
+    # 删除通知走框架扩展点，不再自己写一个"删除所选并通知"的 action
+    def delete_model(self, request, obj):
+        obj.delete()
+        services.push_videos_deleted([obj.videoid])
+
+    def delete_queryset(self, request, queryset):
+        videoids = list(queryset.values_list("videoid", flat=True))
+        queryset.delete()
+        services.push_videos_deleted(videoids)
+
+    @admin.action(description="📡 重新推送所选视频到游戏服")
+    def repush(self, request, queryset):
+        ok = sum(1 for obj in queryset if services.push_video(obj, created=False))
+        self.message_user(request, f"已推送 {ok} 个视频，失败 {queryset.count() - ok} 个（详见日志）。")
+
+    @admin.display(description="状态", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag")
+
+    @admin.display(description="引用桌台")
+    def tables_cell(self, obj):
+        count = getattr(obj, "_tables", 0)
+        return badge(f"{count} 张", "warn" if count else "muted")
+
+
+# ====================================================================== 桌台
+@admin.register(TTable, site=admin_site)
+class TTableAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = ("tableid", "videoid", "gametype", "limitid", "seats", "flag_cell")
+    list_display_links = ("tableid",)
+    list_select_related = ("videoid",)
+    autocomplete_fields = ("videoid",)
+    search_fields = ("tableid", "videoid__videoid")
+    list_filter = ("gametype", "flag", "limitid")
+    ordering = ("tableid",)
+    list_per_page = 50
+    actions = ("repush", "export_csv")
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def save_model(self, request, obj, form, change):
+        obj.save()  # ← 同上：老代码编辑桌台不写库
+        services.sync_table(obj)
+        if not services.push_table(obj, created=not change):
+            self.message_user(
+                request,
+                "已保存，但通知游戏服失败（已加入重试队列）。",
+                messages.WARNING,
+            )
+
+    def delete_model(self, request, obj):
+        obj.delete()
+        services.push_table(obj, created=False)
+
+    @admin.action(description="📡 重新推送所选桌台到游戏服")
+    def repush(self, request, queryset):
+        ok = sum(1 for obj in queryset if services.push_table(obj, created=False))
+        self.message_user(request, f"已推送 {ok} 张桌台，失败 {queryset.count() - ok} 张。")
+
+    @admin.display(description="状态", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag")
+
+
+# ====================================================================== 限红
+@admin.register(TTableLimitset, site=admin_site)
+class TTableLimitsetAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = ("limitid", "playtype", "min_cents_cell", "max_cents_cell", "flag_cell")
+    search_fields = ("limitid",)
+    list_filter = ("flag", "playtype")
+    list_per_page = 50
+
+    @admin.display(description="最小下注额")
+    def min_cents_cell(self, obj):
+        return cents(obj.min_cents)
+
+    @admin.display(description="最大下注额")
+    def max_cents_cell(self, obj):
+        return cents(obj.max_cents)
+
+    @admin.display(description="状态", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag")
+
+
+@admin.register(TPersonalLimitset, site=admin_site)
+class TPersonalLimitsetAdmin(TTableLimitsetAdmin):
+    pass
+
+
+# ====================================================================== 注单
+@admin.register(TOrders, site=admin_site)
+class TOrdersAdmin(AgentScopedAdminMixin, FastPaginationMixin, ChangelistStatsMixin, admin.ModelAdmin):
+    list_display = (
+        "billno",
+        "loginname",
+        "gametype",
+        "tableid",
+        "seat",
+        "dealer",
+        "flag_cell",
+        "bet_cell",
+        "valid_cell",
+        "win_cell",
+        "credit_change",
+        "created_cell",
+        "reckoned_cell",
+    )
+    list_display_links = ("billno",)
+    # 老配置把 create_time / reckon_time 放进 search_fields → 对时间列做 __icontains，全表扫描。
+    search_fields = ("=billno", "loginname", "roundcode", "tableid", "dealer")
+    search_help_text = "注单号（精确）、账户名、局号、桌台、荷官"
+    list_filter = ("flag", "gametype", OrderDateFilter, ReckonDateFilter)
+    list_per_page = 50
+    count_probe_rows = 5000
+    actions = (export_csv,)
+
+    readonly_fields = tuple(field.name for field in TOrders._meta.fields)
+
+    # 合计跟随筛选；本页小计只算当前页
+    stats_specs = [
+        {"key": "count", "label": "注单数", "expr": Count("billno"), "fmt": "int"},
+        {
+            "key": "bet",
+            "label": "投注额",
+            "expr": Coalesce(Sum("bet_amount_cents"), Value(0)),
+            "fmt": "cents",
+        },
+        {
+            "key": "valid",
+            "label": "有效投注额",
+            "expr": Coalesce(Sum("valid_bet_amount_cents"), Value(0)),
+            "fmt": "cents",
+        },
+        {
+            "key": "win",
+            "label": "玩家盈利",
+            "expr": Coalesce(Sum("win_amount_cents"), Value(0)),
+            "fmt": "cents_signed",
+        },
+    ]
+    stats_ratio = {"key": "rate", "label": "盈利率", "num": "win", "den": "valid", "scale": 100, "fmt": "pct"}
+    page_specs = [
+        {"key": "bet", "label": "投注额", "field": "bet_amount_cents", "fmt": "cents"},
+        {"key": "valid", "label": "有效投注额", "field": "valid_bet_amount_cents", "fmt": "cents"},
+        {"key": "win", "label": "玩家盈利", "field": "win_amount_cents", "fmt": "cents_signed"},
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="结算标志", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag", kind_map={0: "warn", 1: "ok", 8: "vip", -1: "muted"})
+
+    @admin.display(description="投注额", ordering="bet_amount_cents")
+    def bet_cell(self, obj):
+        return cents(obj.bet_amount_cents)
+
+    @admin.display(description="有效投注额", ordering="valid_bet_amount_cents")
+    def valid_cell(self, obj):
+        return cents(obj.valid_bet_amount_cents)
+
+    @admin.display(description="盈利额", ordering="win_amount_cents")
+    def win_cell(self, obj):
+        return cents(obj.win_amount_cents, signed=True)
+
+    @admin.display(description="额度变化")
+    def credit_change(self, obj):
+        return format_html(
+            '<span class="quiet">{}</span> → <b>{}</b>',
+            f"{obj.before_credit_cents / 100:,.2f}",
+            f"{obj.after_credit_cents / 100:,.2f}",
+        )
+
+    @admin.display(description="创建时间", ordering="create_time")
+    def created_cell(self, obj):
+        return dt(obj.create_time)
+
+    @admin.display(description="结算时间", ordering="reckon_time")
+    def reckoned_cell(self, obj):
+        return dt(obj.reckon_time)
+
+
+# ====================================================================== 游戏局
+@admin.register(TRounds, site=admin_site)
+class TRoundAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = (
+        "roundcode",
+        "gametype",
+        "videoid",
+        "dealer",
+        "flag_cell",
+        "points",
+        "cards",
+        "cardnum",
+        "pair_cell",
+        "shoecode",
+        "begin_cell",
+        "close_cell",
+    )
+    list_display_links = ("roundcode",)
+    search_fields = ("roundcode", "dealer", "shoecode", "videoid")
+    search_help_text = "局号、荷官、靴号、视频ID"
+    list_filter = ("flag", "gametype", "videoid", RoundDateFilter)
+    ordering = ("-roundcode",)
+    list_per_page = 50
+    actions = ("recalc_rounds", "cancel_rounds")
+
+    # cards 允许人工补录（老代码把它注释掉了，结果只能靠游戏服）
+    readonly_fields = (
+        "roundcode",
+        "gametype",
+        "videoid",
+        "dealer",
+        "flag",
+        "cardnum",
+        "pair",
+        "bankerpoint",
+        "playerpoint",
+        "begintime",
+        "closetime",
+        "shoecode",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def save_model(self, request, obj, form, change):
         obj.save()
+        if change and obj.flag == 0:
+            if not services.recalc_round(obj.roundcode, obj.cards or ""):
+                self.message_user(request, "已保存，但重新结算指令发送失败（已加入重试队列）。", messages.WARNING)
 
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-        admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
+    @admin.action(description="🎲 重新结算所选局")
+    def recalc_rounds(self, request, queryset):
+        self._round_command(request, queryset, services.recalc_round, "重新结算", settled_text="已结算成功", skip_text="已结算过的局已跳过")
 
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TBulletin.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.bulletinid)})
-                request._set_post(post)
-        return super(TBulletinAdmin, self).changelist_view(request, extra_context)
+    @admin.action(description="⛔ 取消所选局的注单结算")
+    def cancel_rounds(self, request, queryset):
+        self._round_command(request, queryset, services.cancel_round, "取消结算", settled_text="取消成功", skip_text="未结算的局已跳过")
 
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-
-@receiver(post_save, sender=TBulletin)
-def pushBulletinToGameSer(sender,instance,**argvs):
-    """push new bulletin to the gameserver after which saved into the database
-    """
-    command = 50013
-    if instance.flag == 0:
-        try:
-            response=requests.get('http://%s:%s/bulletin?command=%s'%(url,port,command))
-            if response.content == '60013':
-                message = response.content
-                print 'code:%s'%message
-        except Exception, e:
-            response = HttpResponseRedirect("/admin")
-            print 'Cannot send bulletin to the Game Server.'
-            return response.content
-    else:
-        return HttpResponseRedirect("/admin")
-
-
-@admin.register(TVideo)
-class TVideoAdmin(admin.ModelAdmin):
-
-    list_display = ('videoid','gametype','bettime','url','flag')
-    search_fields = ('videoid','gametype','bettime','url','flag')
-    list_filter = ('videoid','gametype','bettime','url','flag')
-    ordering = ('videoid',)
-    readonly_fields = ('videoid','bettime')
-
-    def get_actions(self, request):
-        """只允许特定管理者有删除视频权限"""
-        actions = super(TVideoAdmin, self).get_actions(request)
-        if not request.user.is_superuser or request.user.username.upper() != 'ADMIN':
-            if 'delete_selected' in actions:
-                del actions['delete_selected']
-        return actions
-
-    def get_readonly_fields(self,request,obj=None):
-        if obj:
-            return ['videoid',]
+    def _round_command(self, request, queryset, command, verb, settled_text, skip_text):
+        # 重新结算只针对未结算(flag=0)的局；取消只针对已结算的局
+        if command is services.recalc_round:
+            targets = queryset.filter(flag=0)
         else:
-            return []
+            targets = queryset.exclude(flag=0)
+        skipped = queryset.count() - targets.count()
 
-    def delVideoAndPushToGamSer(self, request, queryset):
-        videos = []
-        for obj in queryset:
-            videos.append(obj.videoid)
-            super(TVideoAdmin,self).log_deletion(request, obj, obj.videoid) #自定义删除动作记录到log中
-            obj.delete()
+        ok = 0
+        for round_obj in targets:
+            if command(round_obj.roundcode, getattr(round_obj, "cards", "") or ""):
+                ok += 1
+                self.log_change(request, round_obj, f"{verb}: {settled_text}")
+        parts = [f"{verb}：{ok} 局{settled_text}"]
+        if skipped:
+            parts.append(f"{skipped} 局{skip_text}")
+        if ok < targets.count():
+            parts.append(f"{targets.count() - ok} 局发送失败（已进重试队列）")
+        self.message_user(request, "；".join(parts))
 
-        command = 50005
-        data = videos
-        try:
-            response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
-            if response.content == '60005':
-                message = u'删除视频通知服务器成功'
-                self.message_user(request, "%s" %(message))
-        except Exception, e:
-            response = HttpResponseRedirect("/admin/baccarat_Controll/tvideo")
-            message = u'通知服务器出错'
-            self.message_user(request, "%s" %(message))
-            return response
-    delVideoAndPushToGamSer.short_description = u'删除所选视频并通知游戏服务器'
+    @admin.display(description="结算标志", ordering="flag")
+    def flag_cell(self, obj):
+        return choice_badge(obj, "flag")
 
-    def pushVideoInfoToGameSer(self,request,obj,command):
-        """推送更新视频消息到游戏服务器
-        """
-        data = {'videoid':obj.videoid,'url':obj.url,'flag':obj.flag,'bettime':obj.bettime,'gametype':obj.gametype}
-        try:
-            response=requests.get('http://%s:%s/video?command=%s'%(url,port,command),data)
-            if response.content == '60003':
-                message = u'添加新视频通知服务器成功'
-            elif response.content == '60004':
-                message = u'修改视频通知服务器成功'
-            self.message_user(request, "%s" %(message))
-        except Exception, e:
-            response = HttpResponseRedirect("/admin")
-            message = u'通知服务器出错'
-            self.message_user(request, "%s" %(message))
-            return response
+    @admin.display(description="庄/闲")
+    def points(self, obj):
+        return format_html("<b>{}</b> : <b>{}</b>", obj.bankerpoint, obj.playerpoint)
 
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TVideo.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.videoid)})
-                request._set_post(post)
+    @admin.display(description="庄闲对", ordering="pair")
+    def pair_cell(self, obj):
+        return choice_badge(obj, "pair") if obj.pair is not None else badge("—", "muted")
 
-        memopr.syncVideoMemAndDb() #此时同步缓存数据库
-        super(TVideoAdmin,self).log_change(request, TVideo.objects.first(), u'自动同步所有视频缓存数据库')
-        return super(TVideoAdmin, self).changelist_view(request, extra_context)
+    @admin.display(description="开始时间", ordering="begintime")
+    def begin_cell(self, obj):
+        return dt(obj.begintime)
 
-    def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-         admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    actions = [delVideoAndPushToGamSer,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def save_model(self, request, obj, form, change):
-        if change: #change
-            obj.changeVideoInMem() #直接修改缓存
-            self.pushVideoInfoToGameSer(request,obj,50004)
-        else: #add
-            obj.save() #先保存到数据库
-            obj.changeVideoInMem()# 修改缓存
-            self.pushVideoInfoToGameSer(request,obj,50003)
+    @admin.display(description="结束时间", ordering="closetime")
+    def close_cell(self, obj):
+        return dt(obj.closetime)
 
 
-@admin.register(TTable)
-class TTableAdmin(admin.ModelAdmin):
+# ====================================================================== 重新结算记录
+@admin.register(TRecalcRounds, site=admin_site)
+class TRecalcRoundsAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = ("actionid", "action", "roundcode", "created_cell")
+    search_fields = ("actionid", "action", "roundcode")
+    list_filter = ("action", relative_date_filter(
+        title="操作时间", parameter_name="date_range", field_name="create_time"
+    ))
+    ordering = ("-actionid",)
+    list_per_page = 50
 
-    list_display = ('tableid','videoid','limitid','seats','flag')
-    search_fields = ('tableid','videoid','limitid','seats','flag')
-    ordering = ('tableid','seats','videoid')
-    list_filter = ('tableid','videoid','flag','limitid','seats')
-    #list_filter = ('videoid','flag','limitid','seats')
-    readonly_fields = ('gametype',)
-
-    def get_actions(self, request):
-        """只允许特定管理者有删除桌台权限"""
-        actions = super(TTableAdmin, self).get_actions(request)
-        if not request.user.is_superuser or request.user.username.upper() != 'ADMIN':
-            if 'delete_selected' in actions:
-                del actions['delete_selected']
-        return actions
-
-    def pushTableInfoToGameSer(self,request,obj,command):
-        """推送更新桌台消息到游戏服务器
-        """
-        data = {'videoid':obj.videoid.videoid,'gametype':obj.gametype,'tableid':obj.tableid,'flag':obj.flag,'seats':obj.seats,'limitid':obj.limitid}
-        try:
-            response=requests.get('http://%s:%s/table?command=%s'%(url,port,command),data)
-            if response.content == '60006':
-                message = u'添加新桌台通知服务器成功'
-            elif response.content == '60007':
-                message = u'修改桌台通知服务器成功'
-            self.message_user(request, "%s" %(message))
-
-        except Exception, e:
-            response = HttpResponseRedirect("/admin")
-            message = u'通知服务器出错'
-            self.message_user(request, "%s" %(message))
-            return response
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TTable.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.tableid)})
-                request._set_post(post)
-
-        memopr.syncVideoMemAndDb()
-        memopr.syncTableMemAndDb()
-        super(TTableAdmin,self).log_change(request, TTable.objects.first(), u'自动同步所有桌台和视频缓存数据库')
-        return super(TTableAdmin, self).changelist_view(request, extra_context)
-
-    def setListPerPage_30(self,request,queryset):
-         admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-         admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-         admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-         admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-         admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def save_model(self, request, obj, form, change):
-        if change: #change,在修改页面
-            obj.changeTableInMem()
-            self.pushTableInfoToGameSer(request,obj,50007)
-        else: #add,在添加页面
-            obj.save()
-            obj.changeTableInMem()
-            self.pushTableInfoToGameSer(request,obj,50006)
-
-
-@admin.register(TTableLimitset)
-class TTableLimitsetAdmin(admin.ModelAdmin):
-
-    list_display = ('limitid','playtype','min_cents','max_cents','flag')
-    search_fields = ('limitid','playtype','min_cents','max_cents','flag')
-    list_filter = ('limitid','playtype','min_cents','max_cents','flag')
-
-@receiver(post_save, sender=TTableLimitset)
-def pushTableLimitToGameSer(instance,**argvs):
-
-    command = 50009
-    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid,'flag':instance.flag}
-    try:
-        response=requests.get('http://%s:%s/tablelimit?command=%s'%(url,port,command),data)
-        if response.content == '60009':
-            print 'Send message to the Game Server successfully.'
-    except Exception, e:
-            response = HttpResponseRedirect("/admin/baccarat_Controll/tablelimitset")
-            print 'Cannot send TTableLimitset to the Game Server.'
-    return response.content
-
-
-@admin.register(TPersonalLimitset)
-class TPersonalLimitsetAdmin(admin.ModelAdmin):
-
-    list_display = ('limitid','playtype','min_cents','max_cents','flag')
-    search_fields = ('limitid','playtype','min_cents','max_cents','flag')
-    list_filter = ('limitid','playtype','min_cents','max_cents','flag')
-    #list_editable=('limitid','playtype','min_cents','max_cents','flag')
-
-@receiver(post_save, sender=TPersonalLimitset)
-def pushPersonalLimitToGameSer(instance,**argvs):
-    """push TPersonalLimit message to the gameserver after which saved into the database
-    """
-    command = 50011
-    data = {'playtaye':instance.playtype,'minval_cents':instance.min_cents,'maxval_cents':instance.max_cents,'limitid':instance.limitid,'flag':instance.flag}
-    try:
-        response=requests.get('http://%s:%s/personallimit?command=%s'%(url,port,command),data)
-        if response.content == '60011':
-            print 'Send message to the Game Server successfully.'
-    except Exception, e:
-            response = HttpResponseRedirect("/admin/baccarat_Controll/tpersonallimitset")
-            print 'Cannot send PersonalLimitset to the Game Server.'
-    return response.content
-
-
-@admin.register(TOrders)
-class TOrdersAdmin(admin.ModelAdmin):
-
-    def mycreate_time(self,obj):
-        if not obj.create_time:
-            return obj.create_time
-        else:
-            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-    mycreate_time.admin_order_field = 'create_time'
-
-    def myreckon_time(self,obj):
-        if not obj.reckon_time:
-            return obj.reckon_time
-        else:
-            return obj.reckon_time.strftime('%Y-%m-%d %H:%M:%S')
-    myreckon_time.short_description = u'结算时间'
-    myreckon_time.admin_order_field = 'reckon_time'
-
-
-    list_display = ('loginname','billno','roundcode','gametype','videoid','tableid','seat','dealer','flag','playtype',
-                    'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','mycreate_time',
-                    'myreckon_time','create_ip','agentcode')
-    readonly_fields = ('loginname','billno','gametype','agentcode','roundcode','videoid','tableid','seat','dealer','flag','playtype',
-                    'bet_amount_cents','win_amount_cents','valid_bet_amount_cents','before_credit_cents','after_credit_cents','create_time',
-                    'reckon_time','create_ip','hashcode')
-    search_fields = ('billno','loginname','agentcode','roundcode','videoid','tableid','create_time','reckon_time',)
-    list_filter = ('loginname','create_time','reckon_time','flag')
-    ordering = ('-create_time','-billno')
-
-    def has_add_permission(self, request,obj=None):
+    def has_add_permission(self, request):
         return False
 
-    def has_delete_permission(self,request,obj=None):
+    def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_add_permission(self, request,obj=None):
-        return False
-
-    def get_actions(self, request):
-        actions = super(TOrdersAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-        admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-
-        #统计功能
-        all_orders=TOrders.objects.all()
-        valid_bet_list = all_orders.values_list('valid_bet_amount_cents', flat=True)
-        win_bet_list =  all_orders.values_list('win_amount_cents', flat=True)
-
-        bet_amount_small =sum(all_orders[:admin.ModelAdmin.list_per_page].values_list('bet_amount_cents', flat=True)) #小计当前页投注额
-        valid_bet_amount_small = sum(valid_bet for valid_bet in valid_bet_list[:admin.ModelAdmin.list_per_page] if valid_bet is not None) #小计有效投注额
-
-        bet_number_total = TOrders.objects.count() #总计投注笔数
-        bet_amount_total =sum(all_orders.values_list('bet_amount_cents', flat=True)) #总计投注额
-        valid_bet_amount_total = sum(valid_bet for valid_bet in valid_bet_list if valid_bet is not None) #总计有效投注额
-
-        win_amount_total = sum(win_bet for win_bet in win_bet_list if win_bet is not None) #总计盈利
-        earnings_rate = float(win_amount_total) / valid_bet_amount_total *100 #盈利率
-
-
-        extra_context = {'bet_amount_small':bet_amount_small,'valid_bet_amount_small':valid_bet_amount_small,
-                         'bet_number_total':bet_number_total,'bet_amount_total':bet_amount_total,'valid_bet_amount_total':valid_bet_amount_total,
-                         'win_amount_total':win_amount_total,'earnings_rate':earnings_rate}
-
-        self.change_list_template = 'admin/%s/%s/change_list.html' % (TOrders._meta.app_label, 'TOrders') #for Linux! error because chinese verbose name
-
-        #设置无选翻页func
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TOrders.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.billno)})
-                request._set_post(post)
-        return super(TOrdersAdmin, self).changelist_view(request, extra_context)
-
-
-@admin.register(TRounds)
-class TRoundAdmin(admin.ModelAdmin):
-    """游戏局记录管理
-    """
-
-    def mybegintime(self,obj):
-        if not obj.begintime:
-            return obj.begintime
-        else:
-            return obj.begintime.strftime('%Y-%m-%d %H:%M:%S')
-    mybegintime.short_description = u'开始时间'
-    mybegintime.admin_order_field = 'begintime'
-
-    def myclosetime(self,obj):
-        if not obj.closetime:
-            return obj.closetime
-        else:
-            return obj.closetime.strftime('%Y-%m-%d %H:%M:%S')
-    myclosetime.short_description = u'结束时间'
-    myclosetime.admin_order_field = 'closetime'
-
-
-    list_display = ('roundcode','gametype','flag','videoid','dealer','cards','cardnum','pair','bankerpoint','playerpoint','mybegintime','myclosetime','shoecode')
-    search_fields = ('roundcode','gametype','flag','dealer','cards','shoecode')
-    list_filter = ('gametype','dealer','videoid','flag','cards','begintime','closetime')
-    ordering = ('-roundcode',)
-    readonly_fields = ('roundcode','gametype','flag','videoid','dealer','cardnum','pair','bankerpoint','playerpoint','begintime','closetime','shoecode',)
-    #list_editable =  ('cards',)
-
-    def recalcRound(self, request, queryset):
-
-        head = u"重新结算局"
-        command = 50016
-        try:
-            if len(queryset) == 1:
-                roundcode = queryset[0].roundcode
-                flag = queryset[0].flag
-                cards = queryset[0].cards
-                if flag == 0:
-                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s&cards=%s'%(url,port,command,roundcode,cards))
-                    if response.content == '60016':
-                        message = u'结算成功'
-                    else:
-                         message = u'结算失败'
-                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-                    super(TRoundAdmin,self).log_change(request, queryset[0], u'重新结算局:%s'%message) #自定义修改动作记录到log中
-                else:
-                    message = u'已经结算过,无法重新结算'
-                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-            else:
-                message = u'只能选择一局结算'
-                self.message_user(request, "%s: %s" %(head,message))
-        except Exception, e:
-            message = u'发送指令出错'
-            self.message_user(request, "%s: %s" %(head,message))
-            super(TRoundAdmin,self).log_change(request, queryset[0], u'重新结算局:%s'%message) #自定义修改动作记录到log中
-    recalcRound.short_description = u'重新结算局'
-
-    def cancelRound(self, request, queryset):
-
-        head = u"取消局注单结算"
-        command = 50017
-        try:
-            if len(queryset) == 1:
-                roundcode = queryset[0].roundcode
-                flag = queryset[0].flag
-                if flag == 0:
-                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
-                    if response.content == '60017':
-                        message = u'取消成功'
-                    else:
-                        message = u'取消失败'
-                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-                    super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算:%s'%message) #自定义修改动作记录到log中
-                else:
-                    message = u'已经结算过,无法取消'
-                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-            else:
-                message = u'只能取消一局'
-                self.message_user(request, "%s: %s" %(head,message))
-        except Exception, e:
-            message = u'发送指令出错'
-            self.message_user(request, "%s:%s" %(head,message))
-            super(TRoundAdmin,self).log_change(request, queryset[0], u'取消局注单结算:%s'%message) #自定义修改动作记录到log中
-    cancelRound.short_description = u'取消局注单结算'
-
-
-    def has_add_permission(self, request,obj=None):
-        return False
-    def has_delete_permission(self,request,obj=None):
-        return False
-    def has_change_permission(self, request, obj=None):
-        return True
-
-    def get_actions(self, request):
-        actions = super(TRoundAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-        admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    actions = [cancelRound,setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TRounds.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.roundcode)})
-                request._set_post(post)
-        return super(TRoundAdmin, self).changelist_view(request, extra_context)
-
-
-    def save_model(self, request, obj, form, change):
-
-        if change:
-            head = u"重新结算局"
-            command = 50016
-            try:
-                roundcode = obj.roundcode
-                flag = obj.flag
-                if flag == 0:
-                    response=requests.get('http://%s:%s/round?command=%s&roundcode=%s'%(url,port,command,roundcode))
-                    if response.content == '60016':
-                        message = u'结算成功'
-                    else:
-                        message = u'结算失败'
-                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-                    super(TRoundAdmin,self).log_change(request, obj, u'重新结算局:%s'%message) #自定义修改动作记录到log中
-                else:
-                    message = u'已经结算过,无法重新结算'
-                    self.message_user(request, "%s: %s%s" %(head,roundcode,message))
-            except Exception, e:
-                message = u'发送指令出错'
-                self.message_user(request, "%s: %s" %(head,message))
-                super(TRoundAdmin,self).log_change(request, obj, u'重新结算局:%s'%message) #自定义修改动作记录到log中
-            obj.save()
-        else:
-            message = u'已经结算过'
-            self.message_user(request, "%s: %s%s" %(message))
-
-
-@admin.register(TRecalcRounds)
-class TRecalcRoundsAdmin(admin.ModelAdmin):
-    """重新结算游戏局记录
-    """
-    def mycreate_time(self,obj):
-        if not obj.create_time:
-            return obj.create_time
-        else:
-            return obj.create_time.strftime('%Y-%m-%d %H:%M:%S')
-    mycreate_time.short_description = u'创建时间'
-    mycreate_time.admin_order_field = 'create_time'
-
-    list_display = ('actionid','action','mycreate_time','roundcode')
-    search_fields = ('actionid','create_time','action','roundcode')
-    list_filter = ('actionid','action','create_time','roundcode')
-    ordering = ('-actionid',)
-    readonly_fields = ('actionid','action','create_time','roundcode')
-
-    def has_add_permission(self, request,obj=None):
-        return False
-
-    def has_delete_permission(self,request,obj=None):
-        return False
-
-    def get_actions(self, request):
-        actions = super(TRecalcRoundsAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def setListPerPage_30(self,request,queryset):
-        admin.ModelAdmin.list_per_page=30
-    setListPerPage_30.short_description = u'每页显示30条'
-    def setListPerPage_50(self,request,queryset):
-        admin.ModelAdmin.list_per_page=50
-    setListPerPage_50.short_description = u'每页显示50条'
-    def setListPerPage_100(self,request,queryset):
-        admin.ModelAdmin.list_per_page=100
-    setListPerPage_100.short_description = u'每页显示100条'
-    def setListPerPage_300(self,request,queryset):
-        admin.ModelAdmin.list_per_page=300
-    setListPerPage_300.short_description = u'每页显示300条'
-    def setListPerPage_1000(self,request,queryset):
-        admin.ModelAdmin.list_per_page=1000
-    setListPerPage_1000.short_description = u'每页显示1000条'
-
-    actions = [setListPerPage_30,setListPerPage_50,setListPerPage_100,setListPerPage_300,setListPerPage_1000]
-
-    def changelist_view(self, request, extra_context=None):
-        """不选择object的前提下执行action
-        """
-        if 'action' in request.POST and 'setListPerPage' in request.POST['action']:
-            if not request.POST.getlist(admin.ACTION_CHECKBOX_NAME):
-                post = request.POST.copy()
-                for u in TRecalcRounds.objects.all():
-                    post.update({admin.ACTION_CHECKBOX_NAME: str(u.actionid)})
-                request._set_post(post)
-        return super(TRecalcRoundsAdmin, self).changelist_view(request, extra_context)
+    @admin.display(description="创建时间", ordering="create_time")
+    def created_cell(self, obj):
+        return dt(obj.create_time)

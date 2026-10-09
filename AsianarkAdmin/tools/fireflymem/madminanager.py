@@ -4,11 +4,10 @@ Created on 2013-5-22
 
 @author: lan (www.9miao.com)
 '''
-from AsianarkAdmin.tools.fireflymem.singleton import Singleton
+from .singleton import Singleton
 
-class MAdminManager:
-    __metaclass__ = Singleton
 
+class MAdminManager(metaclass=Singleton):
     def __init__(self):
         """
         """
@@ -22,7 +21,7 @@ class MAdminManager:
     def dropAdmin(self,adminname):
         """
         """
-        if self.admins.has_key(adminname):
+        if adminname in self.admins:
             del self.admins[adminname]
 
     def getAdmin(self,adminname):

@@ -1,33 +1,17 @@
-"""AsianarkAdmin URL Configuration
+"""URL 配置。
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/1.8/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  url(r'^$', Home.as_view(), name='home')
-Including another URLconf
-    1. Add an import:  from blog import urls as blog_urls
-    2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
+老写法有两个坑，这里都修掉了：
+* `class AsianarkAdminSite(admin.AdminSite)` 的类体里只是在改 `admin.site.*`，
+  而 `admin.admin_site = AsianarkAdminSite()` 对 `@admin.register` 用的 `admin.site`
+  完全不起作用 —— 整个类是空操作。现在用真正的自定义站点实例挂到 /admin/。
+* `url(r'^admin/', ...)` 没有 `$`，会匹配所有以 admin 开头的路径。现在用 path()。
 """
-from django.conf.urls import include, url,patterns
-from django.contrib import admin
-#admin.autodiscover()
+from django.urls import path
+
+from AsianarkAdmin.admin_ext.site import admin_site
+from AsianarkAdmin.baccarat_Controll import views
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^$','AsianarkAdmin.baccarat_Controll.views.index',name='index'),
+    path("admin/", admin_site.urls),
+    path("", views.index, name="index"),
 ]
-
-
-class AsianarkAdminSite(admin.AdminSite):
-    """Set Adminsite Title
-    """
-    admin.site.site_header = 'Asianark Administration System'
-    admin.site.index_title = 'Baccarat Admin'
-    admin.site.site_title = 'Asianark'
-
-admin.admin_site = AsianarkAdminSite()

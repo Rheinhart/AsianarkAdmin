@@ -1,7 +1,14 @@
-#coding:utf8
+# -*- coding: utf-8 -*-
 from django.contrib import admin
-from models import DjangoAdminAccessIPWhitelist
-from AsianarkAdmin.tools.SortRegistryModelName import *
+
+from AsianarkAdmin.admin_ext.pagination import FastPaginationMixin
+from AsianarkAdmin.admin_ext.site import admin_site
+
+from .models import DjangoAdminAccessIPWhitelist
 
 
-admin.site.register(DjangoAdminAccessIPWhitelist)
+@admin.register(DjangoAdminAccessIPWhitelist, site=admin_site)
+class DjangoAdminAccessIPWhitelistAdmin(FastPaginationMixin, admin.ModelAdmin):
+    list_display = ("ip", "whitelist_reason")
+    search_fields = ("ip", "whitelist_reason")
+    list_per_page = 50
