@@ -141,6 +141,8 @@ class TAgentsAdmin(FastPaginationMixin, admin.ModelAdmin):
     ordering = ("agentcode",)
     list_per_page = 50
     autocomplete_fields = ("user",)
+    # 系统字段：create_ip 由 save_model 从请求里取，create_time 自动填
+    readonly_fields = ("create_time", "create_ip")
 
     def save_model(self, request, obj, form, change):
         # 老代码：TAgents.create_ip = ip（改的是类的字段描述符）+ 没有 obj.save() → 编辑全部丢失

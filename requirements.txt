@@ -1,0 +1,7 @@
+# 运行依赖（Python 3.11+ / Django 6）
+Django>=6.0,<7.0
+requests>=2.31
+
+# —— 连生产 MySQL 时再装（本地开发默认用 sqlite，见 .env.example）——
+# PyMySQL>=1.1
+# python-memcached>=1.6        # 只有 ASIANARK_MEMCACHE_LOCATION 配了才需要（firefly 缓存同步）

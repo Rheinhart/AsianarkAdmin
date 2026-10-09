@@ -1,0 +1,26 @@
+package protofile.login;
+
+message loginRequest{
+    required string loginname = 1;
+    required string password = 2;
+}
+
+message loginResultResponse{
+    required int32 code = 1;
+    optional string token = 2;
+    required int32 flag = 3;
+}
+
+message userInfoResponse{
+    required string nickname = 1;
+    required float credit = 2;
+}
+
+message loginGameRequest{
+    required string loginname = 1;
+    required string token = 2;
+}
+
+message loginGameResultResponse{
+    required int32 code = 1;
+}

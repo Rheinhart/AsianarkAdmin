@@ -1,0 +1,12 @@
+package protofile.controller.addTable;
+
+message addTableRequest{
+    required string tableId = 1;
+    required string videoId = 2;
+    required string limitId=3;
+}
+
+message addTableResponse{
+    required int32 code=1;
+}
+

@@ -1,0 +1,12 @@
+package protofile.controller.modifyTable;
+
+message modifyTableRequest{
+    required string tableId = 1;
+    required string videoId = 2;
+    required string limitId= 3;
+    required uint32 flag = 4;
+}
+
+message modifyTableResponse{
+    required uint32 code=1;
+}

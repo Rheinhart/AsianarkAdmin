@@ -1,0 +1,13 @@
+package protofile.controller.modifyPersonalLimit;
+
+message modifyPersonalLimitRequest{
+    required string limitId = 1;
+    required uint32 num = 2;
+    repeated PersonalLimit personalLimit = 3;
+}
+
+message PersonalLimit{
+    required uint32 playtype = 1;
+    required uint32 minval_cents = 2;
+    required uint32 maxval_cents = 3;
+}

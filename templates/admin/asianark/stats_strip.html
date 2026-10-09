@@ -1,0 +1,26 @@
+{% load admin_ext %}
+{# 列表页顶部统计条：合计跟随当前筛选，小计只算当前页。由 ChangelistStatsMixin 注入 stats。 #}
+{% if stats %}
+<div class="stat-strip">
+    <div class="stat-row">
+        <span class="stat-label">当前筛选</span>
+        <span class="stat-item"><b>{{ stats.count|numfmt }}{% if stats.count_partial %}+{% endif %}</b> 条</span>
+        {% for item in stats.items %}
+            <span class="stat-item">{{ item.label }} <b class="{{ item.kind }}">{{ item.text }}</b></span>
+        {% endfor %}
+        {% if stats.count_partial %}
+            <span class="quiet">结果集过大，合计只统计前 {{ stats.limit|numfmt }} 条；加筛选条件可缩小范围</span>
+        {% else %}
+            <span class="quiet">合计随搜索与筛选实时变化</span>
+        {% endif %}
+    </div>
+    {% if stats.page_items %}
+        <div class="stat-row stat-row-page">
+            <span class="stat-label">本页小计（{{ stats.page_rows }} 行）</span>
+            {% for item in stats.page_items %}
+                <span class="stat-item">{{ item.label }} <b class="{{ item.kind }}">{{ item.text }}</b></span>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endif %}

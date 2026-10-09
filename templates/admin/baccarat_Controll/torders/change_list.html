@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+
+{# 模型名小写目录 + change_list.html 会被 admin 自动找到，#}
+{# 不需要像老代码那样在请求里手改 self.change_list_template（那行注释说“因为中文 verbose name 在 Linux 报错”，#}
+{# 真正的原因是它把模型名写成了大写的 TOrders）。#}
+{% block result_list %}
+    {% include "admin/asianark/stats_strip.html" %}
+    {{ block.super }}
+{% endblock %}

@@ -1,0 +1,46 @@
+{% load admin_ext %}
+{# 首页看板：当日大盘。数据来自 admin_ext.dashboard.kpi_stats()（带 60s 缓存）。 #}
+<section class="kpi-grid">
+    <div class="kpi">
+        <span class="kpi-label">今日注单</span>
+        <span class="kpi-value">{{ kpi.today.count|numfmt }}</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-label">今日投注流水</span>
+        <span class="kpi-value">{{ kpi.today.bet|cents }}</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-label">今日有效投注</span>
+        <span class="kpi-value">{{ kpi.today.valid|cents }}</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-label">今日玩家盈利</span>
+        <span class="kpi-value">{{ kpi.today.win|cents }}</span>
+    </div>
+    <div class="kpi {% if kpi.unsettled_rounds %}warn{% endif %}">
+        <span class="kpi-label">未结算的局</span>
+        <span class="kpi-value">{{ kpi.unsettled_rounds|numfmt }}</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-label">客户总数</span>
+        <span class="kpi-value">{{ kpi.members|numfmt }}</span>
+    </div>
+</section>
+
+{% if kpi.top_days %}
+<section class="kpi-days">
+    <h3>近 7 天投注流水</h3>
+    <table class="days-table">
+        <tbody>
+        {% for row in kpi.top_days %}
+            <tr>
+                <td class="mono">{{ row.day|date:"Y-m-d" }}</td>
+                <td class="mono">{{ row.bet|cents }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
+<p class="quiet">看板数据生成于 {{ kpi.generated_at }}（结果缓存 60 秒）。<a href="?refresh=1">立即刷新</a></p>

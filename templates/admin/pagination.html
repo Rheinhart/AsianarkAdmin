@@ -1,0 +1,44 @@
+{% load admin_list admin_ext %}
+{# 覆盖 Django 自带的分页条：上一页/下一页 + 页码窗口 + 每页条数切换 + 估算计数。 #}
+<nav class="paginator asianark-pager" aria-labelledby="pagination">
+    <h2 id="pagination" class="visually-hidden">分页 {{ cl.opts.verbose_name_plural }}</h2>
+
+    <div class="pager-info">
+        {% if cl.paginator.estimated %}
+            <span class="pager-count estimated" title="结果集超过阈值，未做精确 COUNT">共 {{ cl.result_count|numfmt }}+ 条（估算）</span>
+            <a class="pager-link" href="{% qs cl fullcount=1 %}">显示精确数量</a>
+        {% else %}
+            <span class="pager-count">共 {{ cl.result_count|numfmt }} 条</span>
+        {% endif %}
+        {% if show_all_url %}
+            <a href="{{ show_all_url }}" class="showall">显示全部</a>
+        {% endif %}
+    </div>
+
+    <div class="pager-pages">
+        {% if cl.page_num > 1 %}
+            <a class="pager-prev" href="{% qs cl p=cl.page_num|add:-1 %}">← 上一页</a>
+        {% endif %}
+
+        {% if pagination_required %}
+            <span class="pager-range">{% for i in page_range %}{% paginator_number cl i %}{% endfor %}</span>
+        {% endif %}
+
+        {% if cl.paginator.fetched_has_next %}
+            <a class="pager-next" href="{% qs cl p=cl.page_num|add:1 %}">下一页 →</a>
+        {% endif %}
+    </div>
+
+    {% if cl.per_page_options %}
+        <div class="pager-perpage">
+            每页
+            {% for n in cl.per_page_options %}
+                {% if n == cl.current_per_page %}
+                    <span class="pager-chip on">{{ n }}</span>
+                {% else %}
+                    <a class="pager-chip" href="{% qs cl remove='p,per_page' per_page=n %}">{{ n }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+</nav>
